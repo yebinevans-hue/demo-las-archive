@@ -435,6 +435,16 @@
   .store-reg-table th,.store-reg-table td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;}
   .store-reg-table th{color:var(--muted);font-weight:600;}
 
+  /* 콘텐츠 제작 요청 모달 */
+  .ord-book-results{max-height:160px;overflow:auto;border:1px solid var(--line);border-radius:6px;margin:6px 0 12px;}
+  .ord-book-result-item{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 10px;border-bottom:1px solid var(--line);}
+  .ord-book-result-item:last-child{border-bottom:none;}
+  .ord-selected-books{flex:1;display:flex;flex-wrap:wrap;gap:6px;min-height:28px;}
+  .ord-book-chip{display:inline-flex;align-items:center;gap:6px;background:var(--primary-tint);color:var(--primary);font-size:12px;font-weight:600;padding:4px 6px 4px 10px;border-radius:14px;}
+  .ord-book-chip .x{cursor:pointer;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-size:10px;}
+  .ord-cat-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
+  .ord-cat-row select{width:auto;}
+
   /* 포함 자료 선택 리스트 배지 (등록자료 / 지역학 콘텐츠 구분) */
   .pick-item .src-badge{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:auto;white-space:nowrap;}
   .pick-item .src-badge.rec{background:var(--primary-tint);color:var(--primary);}
@@ -1126,6 +1136,45 @@
   </div>
 </div>
 
+<!-- 지역학 콘텐츠 제작 요청(주문) -->
+<div class="modal-backdrop" id="contentOrderModal">
+  <div class="modal" style="max-width:640px;max-height:90vh;">
+    <div class="modal-head">
+      <span>지역학 콘텐츠 제작 요청</span>
+      <button class="modal-x" onclick="closeContentOrder()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="hint" style="display:block;margin-bottom:12px;">실제 서비스에서는 알라딘 등 외부 도서 검색 API를 연동하지만, 데모에서는 도서관이 보유한 목록에서 참고 도서를 선택합니다.</div>
+
+      <div class="brow"><label>도서 검색</label><input type="text" id="ord_book_search" placeholder="책 제목 또는 저자로 검색" oninput="renderOrderBookResults()"></div>
+      <div id="ordBookResults" class="ord-book-results"></div>
+
+      <div class="brow" style="align-items:flex-start;">
+        <label>선택한 도서</label>
+        <div id="ordSelectedBooks" class="ord-selected-books"></div>
+      </div>
+
+      <div class="brow" style="align-items:flex-start;">
+        <label>제작 분류·수량</label>
+        <div style="flex:1;">
+          <div id="ordCatRows"></div>
+          <button type="button" class="btn sm" onclick="addOrderCatRow()">+ 분류 추가</button>
+        </div>
+      </div>
+
+      <div class="brow"><label>납품 희망일</label><input type="date" id="ord_delivery_date"></div>
+      <div class="brow"><label>결제 방법</label><textarea id="ord_payment" placeholder="예: 세금계산서 발행 후 익월 계좌이체 등, 결제 방법을 자유롭게 입력하세요"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <span class="hint">요청 즉시 아래 '제작 요청 내역' 목록에서 확인할 수 있습니다</span>
+      <div>
+        <button type="button" class="btn" onclick="closeContentOrder()">취소</button>
+        <button type="button" class="btn primary" onclick="submitContentOrder()">요청하기</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- Supabase 연동: 아래 URL/키를 본인의 Supabase 프로젝트 값으로 교체하세요 -->
@@ -1144,6 +1193,7 @@ let currentAcq = '등록';
 let settings = { templateId:'grid', labels:{item:'아이템',collection:'컬렉션',exhibit:'전시회'}, plan:'general', regCounter:0, receiptNumbers:[], localStudyName:'행복학' };
 let collections = [];
 let customContent = [];
+let contentOrders = [];
 let builderPickedIds = new Set();
 let builderThumb = null;
 let builderBg = null;
@@ -1192,6 +1242,20 @@ const STORE_CATALOG = {
   ],
 };
 
+/* 콘텐츠 제작 요청 시 참고 도서를 검색하기 위한 데모용 목록.
+   실제 서비스에서는 알라딘 Open API 등 외부 도서 검색 API로 대체하고,
+   여기서는 도서관이 보유한 화도학 관련 장서 목록을 고정 데이터로 대신 넣어둔다. */
+const LIBRARY_BOOK_CATALOG = [
+  { id:'bk1', title:'화도읍 백년사', author:'남양주문화원 편', publisher:'경기문화재단' },
+  { id:'bk2', title:'왕숙천, 흐르는 이야기', author:'이정하', publisher:'화도문고' },
+  { id:'bk3', title:'다산 정약용과 화도읍 유배길', author:'박서준', publisher:'남양주시립도서관' },
+  { id:'bk4', title:'꽹이부리말 아이들', author:'김선정', publisher:'창비' },
+  { id:'bk5', title:'마석우리의 사계절', author:'화도문화원 편', publisher:'화도문화원' },
+  { id:'bk6', title:'녹촌리 마을지', author:'남양주시 편', publisher:'남양주시청' },
+  { id:'bk7', title:'화도장터 사람들', author:'조은주', publisher:'경기민속학회' },
+  { id:'bk8', title:'수레로 옛길을 걷다', author:'최민준', publisher:'화도향토사연구회' },
+];
+
 /* ── Supabase row <-> 앱 내부 객체 매핑 ── */
 function recordToRow(r){
   return {
@@ -1234,6 +1298,14 @@ function rowToCc(row){
   return { id:row.id, category:row.category, title:row.title, desc:row.description,
     thumb:row.thumb, images:row.images||[], premium:!!row.is_premium, createdAt:row.created_at };
 }
+function contentOrderToRow(o){
+  return { id:o.id, books:o.books||[], items:o.items||[], delivery_date:o.deliveryDate||null,
+    payment_method:o.paymentMethod||'', status:o.status||'요청됨', created_at:o.createdAt||new Date().toISOString() };
+}
+function rowToContentOrder(row){
+  return { id:row.id, books:row.books||[], items:row.items||[], deliveryDate:row.delivery_date,
+    paymentMethod:row.payment_method, status:row.status||'요청됨', createdAt:row.created_at };
+}
 function settingsToRow(){
   return { id:1, template_id:settings.templateId, plan:settings.plan,
     reg_counter:settings.regCounter||0, receipt_numbers:settings.receiptNumbers||[],
@@ -1273,6 +1345,12 @@ async function loadRecords(){
     if(error) throw error;
     customContent = (data||[]).map(rowToCc);
   }catch(e){ console.error('기타 콘텐츠 불러오기 실패', e); customContent = []; }
+
+  try{
+    const { data, error } = await sb.from('content_orders').select('*').order('created_at', {ascending:false});
+    if(error) throw error;
+    contentOrders = (data||[]).map(rowToContentOrder);
+  }catch(e){ console.error('콘텐츠 제작 요청 불러오기 실패', e); contentOrders = []; }
 }
 async function saveRecords(){
   if(!sb) return;
@@ -1298,6 +1376,13 @@ async function saveCustomContent(){
   try{
     await sb.from('custom_content').delete().neq('id','__none__');
     if(customContent.length) await sb.from('custom_content').insert(customContent.map(ccToRow));
+  }catch(e){ console.error('저장 실패', e); }
+}
+async function saveContentOrders(){
+  if(!sb) return;
+  try{
+    await sb.from('content_orders').delete().neq('id','__none__');
+    if(contentOrders.length) await sb.from('content_orders').insert(contentOrders.map(contentOrderToRow));
   }catch(e){ console.error('저장 실패', e); }
 }
 
@@ -2393,13 +2478,16 @@ function renderStore(){
   pill.className = 'plan-pill ' + settings.plan;
 
   const body = document.getElementById('storeBody');
-  body.innerHTML = Object.entries(STORE_CATALOG).map(([cat, items])=>{
+  body.innerHTML = renderOrderHistory() + Object.entries(STORE_CATALOG).map(([cat, items])=>{
     const catSafe = cat.replace(/'/g,"\\'");
     const registered = customContent.filter(c=>c.premium && c.category===cat);
     const hasRegistered = registered.length > 0;
 
     const headHtml = hasRegistered
-      ? `<div class="store-section-head"><h4>${cat}</h4><button type="button" class="btn sm" onclick="requestUpgrade('${catSafe}')">+ 추가 콘텐츠 요청하기</button></div>`
+      ? `<div class="store-section-head"><h4>${cat}</h4><div style="display:flex;gap:6px;">
+          <button type="button" class="btn sm" onclick="requestUpgrade('${catSafe}')">+ 추가 콘텐츠 요청하기</button>
+          <button type="button" class="btn sm" onclick="openPremiumImport('${catSafe}','')">파일로 바로 등록</button>
+        </div></div>`
       : `<h4>${cat}</h4>`;
 
     const registeredHtml = hasRegistered ? `
@@ -2429,7 +2517,7 @@ function renderStore(){
           <div class="store-card">
             <div class="nm">${it.name}</div>
             <div class="meta">${it.meta}<br>제작: (주)이씨오</div>
-            <button onclick="requestPurchase('${catSafe}','${it.name.replace(/'/g,"\\'")}')">구매 신청(데모 등록)</button>
+            <button onclick="requestPurchase('${catSafe}','${it.name.replace(/'/g,"\\'")}')">제작 요청하기</button>
           </div>`).join('')}
       </div>`;
     } else if(!hasRegistered){
@@ -2437,13 +2525,37 @@ function renderStore(){
         <div class="store-empty">
           <div class="lock">🔒</div>
           프리미엄 콘텐츠 — 현재 이용 중인 버전에는 포함된 콘텐츠가 없습니다
-          <div><button onclick="requestUpgrade('${catSafe}')">프리미엄 문의하기</button></div>
+          <div><button onclick="requestUpgrade('${catSafe}')">+ 콘텐츠 주문하기</button></div>
+          <div style="margin-top:6px;"><span class="hint" style="cursor:pointer;text-decoration:underline;" onclick="openPremiumImport('${catSafe}','')">이미 준비된 파일이 있다면 바로 등록하기</span></div>
         </div>
       </div>`;
     }
 
     return `<div class="store-section">${headHtml}${registeredHtml}${catalogHtml}</div>`;
   }).join('') + renderStoreOrphanSection();
+}
+/* 접수된 콘텐츠 제작 요청(주문) 내역 목록 */
+function renderOrderHistory(){
+  if(!contentOrders.length) return '';
+  return `<div class="store-section">
+    <h4>제작 요청 내역</h4>
+    <div class="store-registered">
+      <table class="store-reg-table">
+        <thead><tr><th>참고 도서</th><th>제작 분류·수량</th><th>납품 희망일</th><th>결제 방법</th><th>상태</th><th></th></tr></thead>
+        <tbody>
+          ${contentOrders.map(o=>`
+            <tr>
+              <td>${o.books.map(b=>escapeHtml(b.title)).join(', ')}</td>
+              <td>${o.items.map(it=>`${escapeHtml(it.category)} ${it.qty}종`).join(' / ')}</td>
+              <td>${escapeHtml(o.deliveryDate||'')}</td>
+              <td>${escapeHtml(o.paymentMethod||'')}</td>
+              <td><span class="status-pill 접수중">${escapeHtml(o.status)}</span></td>
+              <td><button type="button" class="btn sm del" onclick="cancelContentOrder('${o.id}')">취소</button></td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
 }
 /* 카테고리 목록(STORE_CATALOG)과 정확히 일치하지 않는 카테고리로 등록된 프리미엄 콘텐츠도
    누락되지 않도록 별도 구역에 모아서 보여준다 (예: 이전 버전에서 자유 입력으로 등록된 항목) */
@@ -2480,8 +2592,104 @@ function renderStoreOrphanSection(){
     </div>
   </div>`;
 }
-function requestPurchase(cat, name){ openPremiumImport(cat, name); }
-function requestUpgrade(cat){ openPremiumImport(cat||'', ''); }
+function requestPurchase(cat, name){ openContentOrderModal(cat, name); }
+function requestUpgrade(cat){ openContentOrderModal(cat||'', ''); }
+
+/* ── 지역학 콘텐츠 제작 요청(주문) 모달 ── */
+let ordSelectedBookIds = [];
+let ordCatRows = [];
+function openContentOrderModal(category, bookSearchPrefill){
+  const knownCats = Object.keys(STORE_CATALOG);
+  ordSelectedBookIds = [];
+  ordCatRows = [{ category: knownCats.includes(category) ? category : knownCats[0], qty: 3 }];
+  document.getElementById('ord_book_search').value = bookSearchPrefill || '';
+  document.getElementById('ord_delivery_date').value = '';
+  document.getElementById('ord_payment').value = '';
+  renderOrderBookResults();
+  renderOrderSelectedBooks();
+  renderOrderCatRows();
+  document.getElementById('contentOrderModal').classList.add('on');
+}
+function closeContentOrder(){ document.getElementById('contentOrderModal').classList.remove('on'); }
+function renderOrderBookResults(){
+  const q = document.getElementById('ord_book_search').value.trim().toLowerCase();
+  const list = q ? LIBRARY_BOOK_CATALOG.filter(b=>b.title.toLowerCase().includes(q) || b.author.toLowerCase().includes(q)) : LIBRARY_BOOK_CATALOG;
+  document.getElementById('ordBookResults').innerHTML = list.length ? list.map(b=>{
+    const added = ordSelectedBookIds.includes(b.id);
+    return `<div class="ord-book-result-item">
+      <div><b>${escapeHtml(b.title)}</b><span class="hint" style="display:block;margin:0;">${escapeHtml(b.author)} · ${escapeHtml(b.publisher)}</span></div>
+      <button type="button" class="btn sm" ${added?'disabled':''} onclick="addOrderBook('${b.id}')">${added?'추가됨':'+ 추가'}</button>
+    </div>`;
+  }).join('') : `<div style="padding:10px;"><span class="hint">검색 결과가 없습니다</span></div>`;
+}
+function addOrderBook(id){
+  if(!ordSelectedBookIds.includes(id)) ordSelectedBookIds.push(id);
+  renderOrderBookResults();
+  renderOrderSelectedBooks();
+}
+function removeOrderBook(id){
+  ordSelectedBookIds = ordSelectedBookIds.filter(x=>x!==id);
+  renderOrderBookResults();
+  renderOrderSelectedBooks();
+}
+function renderOrderSelectedBooks(){
+  const books = ordSelectedBookIds.map(id=>LIBRARY_BOOK_CATALOG.find(b=>b.id===id)).filter(Boolean);
+  document.getElementById('ordSelectedBooks').innerHTML = books.length
+    ? books.map(b=>`<span class="ord-book-chip">${escapeHtml(b.title)}<span class="x" onclick="removeOrderBook('${b.id}')">✕</span></span>`).join('')
+    : `<span class="hint">위 검색 결과에서 도서를 선택해 추가하세요 (여러 권 선택 가능)</span>`;
+}
+function addOrderCatRow(){
+  const knownCats = Object.keys(STORE_CATALOG);
+  const used = ordCatRows.map(r=>r.category);
+  const remaining = knownCats.find(k=>!used.includes(k));
+  ordCatRows.push({ category: remaining || knownCats[0], qty: 3 });
+  renderOrderCatRows();
+}
+function removeOrderCatRow(idx){
+  ordCatRows.splice(idx,1);
+  renderOrderCatRows();
+}
+function setOrderCatRowField(idx, field, value){
+  if(!ordCatRows[idx]) return;
+  ordCatRows[idx][field] = field==='qty' ? Math.max(1, parseInt(value,10)||1) : value;
+}
+function renderOrderCatRows(){
+  const knownCats = Object.keys(STORE_CATALOG);
+  document.getElementById('ordCatRows').innerHTML = ordCatRows.map((r,i)=>`
+    <div class="ord-cat-row">
+      <select onchange="setOrderCatRowField(${i},'category',this.value)">
+        ${knownCats.map(k=>`<option value="${escapeHtml(k)}" ${r.category===k?'selected':''}>${escapeHtml(k)}</option>`).join('')}
+      </select>
+      <input type="number" min="1" value="${r.qty}" onchange="setOrderCatRowField(${i},'qty',this.value)" style="width:70px;">
+      <span class="hint" style="margin:0;">종</span>
+      ${ordCatRows.length>1 ? `<button type="button" class="btn sm del" onclick="removeOrderCatRow(${i})">삭제</button>` : ''}
+    </div>`).join('');
+}
+async function submitContentOrder(){
+  if(!ordSelectedBookIds.length){ showToast('참고할 도서를 1권 이상 선택해 주세요'); return; }
+  if(!ordCatRows.length){ showToast('제작 분류를 1개 이상 추가해 주세요'); return; }
+  const deliveryDate = document.getElementById('ord_delivery_date').value;
+  if(!deliveryDate){ showToast('납품 희망일을 선택해 주세요'); return; }
+  const paymentMethod = document.getElementById('ord_payment').value.trim();
+  if(!paymentMethod){ showToast('결제 방법을 입력해 주세요'); return; }
+  const books = ordSelectedBookIds.map(id=>LIBRARY_BOOK_CATALOG.find(b=>b.id===id)).filter(Boolean)
+    .map(b=>({id:b.id, title:b.title, author:b.author, publisher:b.publisher}));
+  contentOrders.unshift({
+    id:'ord_'+Date.now(),
+    books, items: ordCatRows.map(r=>({category:r.category, qty:r.qty})),
+    deliveryDate, paymentMethod, status:'요청됨', createdAt:new Date().toISOString()
+  });
+  await saveContentOrders();
+  showToast('제작 요청이 접수되었습니다 (데모)');
+  closeContentOrder();
+  renderStore();
+}
+async function cancelContentOrder(id){
+  if(!confirm('이 제작 요청을 취소할까요?')) return;
+  contentOrders = contentOrders.filter(o=>o.id!==id);
+  await saveContentOrders();
+  renderStore();
+}
 
 /* ── 프리미엄 콘텐츠 등록 모달 (데모: 외부 파일 불러와 바로 등록, 이미지 여러 장 지원) ── */
 let piPickedImages = [];
