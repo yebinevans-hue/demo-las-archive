@@ -390,8 +390,8 @@
   .pfv-footer-copy{font-size:10.5px;color:var(--faint);}
 
   /* 카드 스와이프형(캐러셀) */
-  .carousel{position:relative;display:flex;align-items:center;gap:8px;}
-  .car-viewport{flex:1;overflow:hidden;border-radius:8px;background:#F3F4F1;aspect-ratio:16/9;}
+  .carousel{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;}
+  .car-viewport{flex:0 1 420px;width:100%;overflow:hidden;border-radius:8px;background:#F3F4F1;aspect-ratio:1/1;}
   .car-track{display:flex;height:100%;transition:transform .35s ease;}
   .car-slide{flex:0 0 100%;position:relative;height:100%;background:#000;display:flex;align-items:center;justify-content:center;}
   .car-slide img{width:100%;height:100%;object-fit:cover;}
@@ -409,7 +409,9 @@
   .pi-thumb{position:relative;width:56px;height:56px;border-radius:6px;overflow:hidden;border:1px solid var(--line);}
   .pi-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
   .pi-thumb-del{position:absolute;top:1px;right:1px;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
-  .store-registered{margin-top:10px;}
+  .store-section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+  .store-section-head h4{margin:0;}
+  .store-registered{margin-bottom:14px;}
   .store-registered h5{font-size:12px;color:var(--muted);margin:0 0 6px;}
   .store-reg-table{width:100%;border-collapse:collapse;font-size:12px;}
   .store-reg-table th,.store-reg-table td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;}
@@ -2288,10 +2290,16 @@ function renderStore(){
 
   const body = document.getElementById('storeBody');
   body.innerHTML = Object.entries(STORE_CATALOG).map(([cat, items])=>{
+    const catSafe = cat.replace(/'/g,"\\'");
     const registered = customContent.filter(c=>c.premium && c.category===cat);
-    const registeredHtml = registered.length ? `
+    const hasRegistered = registered.length > 0;
+
+    const headHtml = hasRegistered
+      ? `<div class="store-section-head"><h4>${cat}</h4><button type="button" class="btn sm" onclick="requestUpgrade('${catSafe}')">+ 추가 콘텐츠 요청하기</button></div>`
+      : `<h4>${cat}</h4>`;
+
+    const registeredHtml = hasRegistered ? `
       <div class="store-registered">
-        <h5>등록된 콘텐츠 (${registered.length}건)</h5>
         <table class="store-reg-table">
           <thead><tr><th>콘텐츠명</th><th>작성자</th><th>등록일</th><th>이미지</th><th></th></tr></thead>
           <tbody>
@@ -2309,23 +2317,28 @@ function renderStore(){
           </tbody>
         </table>
       </div>` : '';
+
+    let catalogHtml = '';
     if(settings.plan==='premium'){
-      return `<div class="store-section"><h4>${cat}</h4><div class="store-grid">
+      catalogHtml = `<div class="store-grid">
         ${items.map(it=>`
           <div class="store-card">
             <div class="nm">${it.name}</div>
             <div class="meta">${it.meta}<br>제작: (주)이씨오</div>
-            <button onclick="requestPurchase('${cat.replace(/'/g,"\\'")}','${it.name.replace(/'/g,"\\'")}')">구매 신청(데모 등록)</button>
+            <button onclick="requestPurchase('${catSafe}','${it.name.replace(/'/g,"\\'")}')">구매 신청(데모 등록)</button>
           </div>`).join('')}
-      </div>${registeredHtml}</div>`;
+      </div>`;
+    } else if(!hasRegistered){
+      catalogHtml = `<div class="store-grid">
+        <div class="store-empty">
+          <div class="lock">🔒</div>
+          프리미엄 콘텐츠 — 현재 이용 중인 버전에는 포함된 콘텐츠가 없습니다
+          <div><button onclick="requestUpgrade('${catSafe}')">프리미엄 문의하기</button></div>
+        </div>
+      </div>`;
     }
-    return `<div class="store-section"><h4>${cat}</h4><div class="store-grid">
-      <div class="store-empty">
-        <div class="lock">🔒</div>
-        프리미엄 콘텐츠 — 현재 이용 중인 버전에는 포함된 콘텐츠가 없습니다
-        <div><button onclick="requestUpgrade('${cat.replace(/'/g,"\\'")}')">프리미엄 문의하기</button></div>
-      </div>
-    </div>${registeredHtml}</div>`;
+
+    return `<div class="store-section">${headHtml}${registeredHtml}${catalogHtml}</div>`;
   }).join('');
 }
 function requestPurchase(cat, name){ openPremiumImport(cat, name); }
