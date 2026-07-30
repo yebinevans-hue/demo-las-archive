@@ -389,6 +389,32 @@
   .pfv-footer-brand b{font-weight:800;}
   .pfv-footer-copy{font-size:10.5px;color:var(--faint);}
 
+  /* 카드 스와이프형(캐러셀) */
+  .carousel{position:relative;display:flex;align-items:center;gap:8px;}
+  .car-viewport{flex:1;overflow:hidden;border-radius:8px;background:#F3F4F1;aspect-ratio:16/9;}
+  .car-track{display:flex;height:100%;transition:transform .35s ease;}
+  .car-slide{flex:0 0 100%;position:relative;height:100%;background:#000;display:flex;align-items:center;justify-content:center;}
+  .car-slide img{width:100%;height:100%;object-fit:cover;}
+  .car-noimg{color:#fff;font-size:13px;padding:0 20px;text-align:center;}
+  .car-cap{position:absolute;left:0;right:0;bottom:0;padding:10px 14px;background:linear-gradient(transparent,rgba(0,0,0,.7));color:#fff;}
+  .car-cap b{font-size:13px;display:block;}
+  .car-cap p{font-size:11.5px;margin:2px 0 0;opacity:.85;}
+  .car-btn{flex:0 0 auto;width:34px;height:34px;border-radius:50%;border:1px solid var(--line);background:#fff;font-size:18px;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+  .car-btn:hover{background:var(--primary-tint);}
+  .car-dots{position:absolute;left:0;right:0;bottom:8px;display:flex;justify-content:center;gap:5px;pointer-events:none;}
+  .car-dots .car-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.55);}
+  .car-dots .car-dot.on{background:#fff;}
+  .carousel-empty{padding:40px 10px;text-align:center;}
+  .pi-thumbs{display:flex;flex-wrap:wrap;gap:6px;}
+  .pi-thumb{position:relative;width:56px;height:56px;border-radius:6px;overflow:hidden;border:1px solid var(--line);}
+  .pi-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .pi-thumb-del{position:absolute;top:1px;right:1px;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  .store-registered{margin-top:10px;}
+  .store-registered h5{font-size:12px;color:var(--muted);margin:0 0 6px;}
+  .store-reg-table{width:100%;border-collapse:collapse;font-size:12px;}
+  .store-reg-table th,.store-reg-table td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;}
+  .store-reg-table th{color:var(--muted);font-weight:600;}
+
   /* 포함 자료 선택 리스트 배지 (등록자료 / 지역학 콘텐츠 구분) */
   .pick-item .src-badge{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:auto;white-space:nowrap;}
   .pick-item .src-badge.rec{background:var(--primary-tint);color:var(--primary);}
@@ -1049,7 +1075,7 @@
       <div class="hint" style="margin-bottom:10px;display:block;">실제 서비스에서는 이씨오 콘텐츠사업부가 외부에서 등록하지만, 데모에서는 파일을 직접 불러와 바로 등록해볼 수 있습니다.</div>
       <div class="brow"><label>카테고리</label><input type="text" id="pi_cat" placeholder="예: 카드콘텐츠"></div>
       <div class="brow"><label>콘텐츠명</label><input type="text" id="pi_title" placeholder="콘텐츠명을 입력하세요"></div>
-      <div class="brow"><label>파일 불러오기</label><div><div class="cc-thumb-drop" id="piThumbDrop" onclick="document.getElementById('pi_file').click()">클릭하여 이미지/영상 썸네일 선택</div><input type="file" id="pi_file" accept="image/*" style="display:none" onchange="handlePiThumb(this.files[0])"></div></div>
+      <div class="brow"><label>파일 불러오기</label><div><div class="cc-thumb-drop" id="piThumbDrop" onclick="document.getElementById('pi_file').click()">클릭하여 이미지 여러 장 선택</div><input type="file" id="pi_file" accept="image/*" multiple style="display:none" onchange="handlePiThumb(this.files); this.value='';"><span class="hint" style="display:block;margin-top:4px;">여러 장을 등록하면 '카드 스와이프형' 템플릿에서 ‹ › 버튼으로 넘겨볼 수 있습니다</span></div></div>
       <div class="brow"><label>세부내용</label><textarea id="pi_desc" placeholder="콘텐츠 상세 설명을 입력하세요"></textarea></div>
     </div>
     <div class="modal-foot">
@@ -1058,6 +1084,21 @@
         <button type="button" class="btn" onclick="closePremiumImport()">취소</button>
         <button type="button" class="btn primary" onclick="savePremiumImport()">등록</button>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- 등록된 프리미엄 콘텐츠 미리보기 -->
+<div class="modal-backdrop" id="premiumPreviewModal">
+  <div class="modal" style="max-width:520px;">
+    <div class="modal-head">
+      <span id="ppTitle">콘텐츠 미리보기</span>
+      <button class="modal-x" onclick="closePremiumPreview()">✕</button>
+    </div>
+    <div class="modal-body" id="ppBody"></div>
+    <div class="modal-foot">
+      <span class="hint" id="ppMeta"></span>
+      <div><button type="button" class="btn primary" onclick="closePremiumPreview()">닫기</button></div>
     </div>
   </div>
 </div>
@@ -1094,7 +1135,7 @@ const PASTEL_COLORS = ['#FDE2E4','#FAD2E1','#E2ECE9','#BEE1E6','#F0EFEB','#DFE7F
 
 const TEMPLATE_CATEGORIES = ['기본형','스토리형','공간형','인물·구술형','몰입형'];
 const TEMPLATES = [
-  {id:'grid', cat:'기본형', name:'그리드형', desc:'격자 갤러리, 다량 자료 탐색', shapes:['5,5,25,25','35,5,25,25','65,5,25,25','5,35,25,25','35,35,25,25']},
+  {id:'grid', cat:'기본형', name:'그리드형', desc:'격자 갤러리, 다량 자료 탐색', shapes:['5,5,25,25','35,5,25,25','65,5,25,25','5,35,25,25','35,35,25,25','65,35,25,25']},
   {id:'magazine', cat:'기본형', name:'매거진형', desc:'큰 이미지+본문, 스토리 중심', shapes:['5,5,55,55','65,5,30,25','65,35,30,25']},
   {id:'cardnews', cat:'기본형', name:'카드뉴스형', desc:'모바일 세로 스크롤, 짧은 호흡의 큐레이션', shapes:['10,5,80,18','10,26,80,18','10,47,80,18','10,68,80,18']},
   {id:'timeline', cat:'스토리형', name:'타임라인형', desc:'연대기·사건 흐름 표현', shapes:['5,45,90,4','10,20,4,25','35,20,4,25','60,20,4,25','85,20,4,25']},
@@ -1105,7 +1146,7 @@ const TEMPLATES = [
   {id:'oral', cat:'인물·구술형', name:'오디오가이드형', desc:'구술채록·음성기록 특화, 파형 인터페이스로 재생목록 구성', shapes:['8,45,6,15','19,30,6,40','30,15,6,60','41,35,6,30','52,20,6,50','63,40,6,20','74,25,6,45','85,38,6,24']},
   {id:'mosaic', cat:'몰입형', name:'아카이브월형', desc:'모자이크 벽면 구성, 밀도 높은 몰입형 탐색', shapes:['5,5,24,28','32,5,30,16','65,5,30,45','5,36,24,20','32,24,30,32','5,59,24,20','32,59,63,20']},
   {id:'flipbook', cat:'몰입형', name:'아카이브북형', desc:'페이지 넘김식, 디지털 북 형태로 전시', shapes:['12,8,35,84','53,8,35,84']},
-  {id:'cardswipe', cat:'기본형', name:'카드 스와이프형', desc:'카드콘텐츠를 좌우로 스와이프하며 탐색', shapes:['2,30,17,40','21,30,17,40','40,30,17,40','59,30,17,40','78,30,20,40']},
+  {id:'cardswipe', cat:'기본형', name:'카드 스와이프형', desc:'카드 1장을 크게 보여주고 ‹ › 버튼(또는 스와이프)으로 넘겨보는 캐러셀형', layout:'carousel', shapes:['2,15,15,70','19,15,15,70','36,15,15,70','53,15,15,70','70,15,15,70','87,15,11,70']},
   {id:'booktrailer', cat:'몰입형', name:'북트레일러형', desc:'긴 영상이 메인 재생 썸네일로 크게 노출되는 형태', shapes:['10,8,80,72']},
   {id:'quotecard', cat:'스토리형', name:'인용·설명 카드형', desc:'사진과 제목·설명 텍스트를 카드로 나란히 배치, 캡션을 사진 밖에 표시할 때 특히 잘 어울림', shapes:['5,5,42,42','53,5,42,42','5,53,42,42','53,53,42,42']},
 ];
@@ -1164,11 +1205,11 @@ function rowToCollection(row){
 }
 function ccToRow(c){
   return { id:c.id, category:c.category, title:c.title, description:c.desc||'',
-    thumb:c.thumb||null, is_premium:!!c.premium, created_at:c.createdAt||new Date().toISOString() };
+    thumb:c.thumb||null, images:c.images||[], is_premium:!!c.premium, created_at:c.createdAt||new Date().toISOString() };
 }
 function rowToCc(row){
   return { id:row.id, category:row.category, title:row.title, desc:row.description,
-    thumb:row.thumb, premium:!!row.is_premium, createdAt:row.created_at };
+    thumb:row.thumb, images:row.images||[], premium:!!row.is_premium, createdAt:row.created_at };
 }
 function settingsToRow(){
   return { id:1, template_id:settings.templateId, plan:settings.plan,
@@ -1882,17 +1923,22 @@ function tpvCurateItems(){
 function renderTplPreview(){
   const items = tpvCurateItems();
   const slots = tpvTemplate.shapes;
-  const stageHtml = slots.map((s,i)=>{
-    const [x,y,w,h] = s.split(',');
-    const it = resolveCurateItem(tpvPickedIds[i]);
-    let inner = String(i+1);
-    if(it && it.img){ inner = `<img src="${it.img}"><div class="cap">${escapeHtml(it.title)}</div>`; }
-    else if(it){ inner = `<div class="cap" style="position:static;background:none;color:var(--muted);">${escapeHtml(it.title)}</div>`; }
-    return `<div class="slot" style="left:${x}%;top:${y}%;width:${w}%;height:${h}%;">${inner}</div>`;
-  }).join('');
+  let stageInner;
+  if(tpvTemplate.layout==='carousel'){
+    stageInner = renderCarouselHtml(buildCarouselSlides(tpvPickedIds));
+  } else {
+    stageInner = `<div class="tpv-canvas">${slots.map((s,i)=>{
+      const [x,y,w,h] = s.split(',');
+      const it = resolveCurateItem(tpvPickedIds[i]);
+      let inner = String(i+1);
+      if(it && it.img){ inner = `<img src="${it.img}"><div class="cap">${escapeHtml(it.title)}</div>`; }
+      else if(it){ inner = `<div class="cap" style="position:static;background:none;color:var(--muted);">${escapeHtml(it.title)}</div>`; }
+      return `<div class="slot" style="left:${x}%;top:${y}%;width:${w}%;height:${h}%;">${inner}</div>`;
+    }).join('')}</div>`;
+  }
   document.getElementById('tpvStage').innerHTML = `
     <div style="font-size:12.5px;color:var(--muted);margin-bottom:8px;">${escapeHtml(tpvTemplate.desc)}</div>
-    <div class="tpv-canvas">${stageHtml}</div>`;
+    ${stageInner}`;
 
   document.getElementById('tpvPickList').innerHTML = items.length ? items.map(it=>{
     const order = tpvPickedIds.indexOf(it.id);
@@ -2037,18 +2083,65 @@ function resolveCurateItem(id){
   if(!id) return null;
   if(id.startsWith('cc_')){
     const c = customContent.find(x=>x.id===id);
-    return c ? {title:c.title, desc:c.desc||'', img:c.thumb||null} : null;
+    if(!c) return null;
+    const images = (c.images && c.images.length) ? c.images : (c.thumb ? [c.thumb] : []);
+    return {title:c.title, desc:c.desc||'', img:c.thumb||null, images};
   }
   const r = records.find(x=>x.id===id);
   if(!r) return null;
-  const imgFile = r.files && r.files.find(f=>f.type && f.type.startsWith('image/'));
-  return {title:r.title, desc:r.desc||'', img: imgFile ? imgFile.data : null};
+  const imgFiles = (r.files||[]).filter(f=>f.type && f.type.startsWith('image/'));
+  return {title:r.title, desc:r.desc||'', img: imgFiles[0] ? imgFiles[0].data : null, images: imgFiles.map(f=>f.data)};
+}
+/* ── 카드 스와이프형(캐러셀) ── */
+function buildCarouselSlides(ids){
+  const slides = [];
+  (ids||[]).forEach(id=>{
+    const it = resolveCurateItem(id);
+    if(!it) return;
+    const imgs = (it.images && it.images.length) ? it.images : (it.img ? [it.img] : []);
+    if(imgs.length===0){ slides.push({img:null, title:it.title, desc:it.desc}); return; }
+    imgs.forEach((img,i)=>{
+      slides.push({ img, title: imgs.length>1 ? `${it.title} (${i+1}/${imgs.length})` : it.title, desc: it.desc });
+    });
+  });
+  return slides;
+}
+function renderCarouselHtml(slides){
+  if(!slides.length) return `<div class="carousel-empty hint">배치할 카드를 선택하세요</div>`;
+  const slideHtml = slides.map(s=>`
+    <div class="car-slide">
+      ${s.img ? `<img src="${s.img}">` : `<div class="car-noimg">${escapeHtml(s.title||'이미지 없음')}</div>`}
+      <div class="car-cap"><b>${escapeHtml(s.title||'')}</b>${s.desc?`<p>${escapeHtml(s.desc)}</p>`:''}</div>
+    </div>`).join('');
+  const dotsHtml = slides.map((_,i)=>`<span class="car-dot ${i===0?'on':''}"></span>`).join('');
+  return `
+    <div class="carousel" data-idx="0">
+      <button type="button" class="car-btn car-prev" onclick="carouselNav(this,-1)" aria-label="이전">&#8249;</button>
+      <div class="car-viewport"><div class="car-track">${slideHtml}</div></div>
+      <button type="button" class="car-btn car-next" onclick="carouselNav(this,1)" aria-label="다음">&#8250;</button>
+      ${slides.length>1 ? `<div class="car-dots">${dotsHtml}</div>` : ''}
+    </div>`;
+}
+function carouselNav(btn, dir){
+  const wrap = btn.closest('.carousel');
+  if(!wrap) return;
+  const track = wrap.querySelector('.car-track');
+  const slides = wrap.querySelectorAll('.car-slide');
+  if(!slides.length) return;
+  let idx = parseInt(wrap.dataset.idx || '0', 10);
+  idx = (idx + dir + slides.length) % slides.length;
+  wrap.dataset.idx = idx;
+  track.style.transform = `translateX(-${idx*100}%)`;
+  wrap.querySelectorAll('.car-dot').forEach((d,i)=>d.classList.toggle('on', i===idx));
 }
 function renderCurateSectionBody(c, tpl){
   const ids = c.itemIds || [];
   let bgStyle = '';
   if(c.bg && c.bg.type==='color'){ bgStyle = `background:${c.bg.value};`; }
   else if(c.bg && c.bg.type==='image'){ bgStyle = `background-image:url('${c.bg.value}');background-size:cover;background-position:center;`; }
+  if(tpl.layout==='carousel'){
+    return `<div style="${bgStyle}padding:10px;border-radius:6px;">${renderCarouselHtml(buildCarouselSlides(ids))}</div>`;
+  }
   const mode = c.captionMode || 'overlay';
   if(mode==='overlay'){
     const slotsHtml = tpl.shapes.map((s,si)=>{
@@ -2182,6 +2275,7 @@ async function deleteCcItem(id){
   await saveCustomContent();
   renderCustom();
   renderCurate();
+  renderStore();
 }
 
 /* ── 콘텐츠 스토어 (프리미엄) ── */
@@ -2194,15 +2288,36 @@ function renderStore(){
 
   const body = document.getElementById('storeBody');
   body.innerHTML = Object.entries(STORE_CATALOG).map(([cat, items])=>{
+    const registered = customContent.filter(c=>c.premium && c.category===cat);
+    const registeredHtml = registered.length ? `
+      <div class="store-registered">
+        <h5>등록된 콘텐츠 (${registered.length}건)</h5>
+        <table class="store-reg-table">
+          <thead><tr><th>콘텐츠명</th><th>작성자</th><th>등록일</th><th>이미지</th><th></th></tr></thead>
+          <tbody>
+            ${registered.map(c=>`
+              <tr>
+                <td>${escapeHtml(c.title)}</td>
+                <td>(주)이씨오</td>
+                <td>${(c.createdAt||'').slice(0,10)}</td>
+                <td>${(c.images&&c.images.length)||(c.thumb?1:0)}장</td>
+                <td style="white-space:nowrap;">
+                  <button type="button" class="btn sm" onclick="previewPremiumItem('${c.id}')">미리보기</button>
+                  <button type="button" class="btn sm del" onclick="deleteCcItem('${c.id}')">삭제</button>
+                </td>
+              </tr>`).join('')}
+          </tbody>
+        </table>
+      </div>` : '';
     if(settings.plan==='premium'){
       return `<div class="store-section"><h4>${cat}</h4><div class="store-grid">
         ${items.map(it=>`
           <div class="store-card">
             <div class="nm">${it.name}</div>
-            <div class="meta">${it.meta}<br>제작: 이씨오 콘텐츠사업부</div>
+            <div class="meta">${it.meta}<br>제작: (주)이씨오</div>
             <button onclick="requestPurchase('${cat.replace(/'/g,"\\'")}','${it.name.replace(/'/g,"\\'")}')">구매 신청(데모 등록)</button>
           </div>`).join('')}
-      </div></div>`;
+      </div>${registeredHtml}</div>`;
     }
     return `<div class="store-section"><h4>${cat}</h4><div class="store-grid">
       <div class="store-empty">
@@ -2210,43 +2325,70 @@ function renderStore(){
         프리미엄 콘텐츠 — 현재 이용 중인 버전에는 포함된 콘텐츠가 없습니다
         <div><button onclick="requestUpgrade('${cat.replace(/'/g,"\\'")}')">프리미엄 문의하기</button></div>
       </div>
-    </div></div>`;
+    </div>${registeredHtml}</div>`;
   }).join('');
 }
 function requestPurchase(cat, name){ openPremiumImport(cat, name); }
 function requestUpgrade(cat){ openPremiumImport(cat||'', ''); }
 
-/* ── 프리미엄 콘텐츠 등록 모달 (데모: 외부 파일 불러와 바로 등록) ── */
-let piPickedThumb = null;
+/* ── 프리미엄 콘텐츠 등록 모달 (데모: 외부 파일 불러와 바로 등록, 이미지 여러 장 지원) ── */
+let piPickedImages = [];
 function openPremiumImport(category, title){
   document.getElementById('pi_cat').value = category || '';
   document.getElementById('pi_title').value = title || '';
   document.getElementById('pi_desc').value = '';
-  piPickedThumb = null;
-  document.getElementById('piThumbDrop').innerHTML = '클릭하여 이미지/영상 썸네일 선택';
+  piPickedImages = [];
+  updatePiPreview();
   document.getElementById('premiumImportModal').classList.add('on');
 }
 function closePremiumImport(){ document.getElementById('premiumImportModal').classList.remove('on'); }
-function handlePiThumb(file){
-  if(!file) return;
-  if(file.size > 4*1024*1024){ showToast('4MB를 초과해 데모에서는 첨부할 수 없습니다'); return; }
-  const reader = new FileReader();
-  reader.onload = ()=>{ piPickedThumb = reader.result; document.getElementById('piThumbDrop').innerHTML = `<img src="${piPickedThumb}">`; };
-  reader.readAsDataURL(file);
+function handlePiThumb(fileList){
+  const files = Array.from(fileList || []);
+  if(!files.length) return;
+  const results = new Array(files.length);
+  let loaded = 0;
+  const finalize = ()=>{
+    results.forEach(r=>{ if(r) piPickedImages.push(r); });
+    updatePiPreview();
+  };
+  files.forEach((file, i)=>{
+    if(file.size > 4*1024*1024){ showToast(`${file.name} — 4MB를 초과해 데모에서는 첨부할 수 없습니다`); loaded++; if(loaded===files.length) finalize(); return; }
+    const reader = new FileReader();
+    reader.onload = ()=>{ results[i] = reader.result; loaded++; if(loaded===files.length) finalize(); };
+    reader.readAsDataURL(file);
+  });
+}
+function removePiImage(i){ piPickedImages.splice(i,1); updatePiPreview(); }
+function updatePiPreview(){
+  const el = document.getElementById('piThumbDrop');
+  el.innerHTML = piPickedImages.length
+    ? `<div class="pi-thumbs">${piPickedImages.map((img,i)=>`<div class="pi-thumb"><img src="${img}"><span class="pi-thumb-del" onclick="event.stopPropagation();removePiImage(${i})">✕</span></div>`).join('')}</div>`
+    : '클릭하여 이미지 여러 장 선택';
 }
 async function savePremiumImport(){
   const category = document.getElementById('pi_cat').value.trim();
   const title = document.getElementById('pi_title').value.trim();
   if(!category || !title){ showToast('카테고리와 콘텐츠명을 입력해 주세요'); return; }
   const desc = document.getElementById('pi_desc').value.trim();
-  customContent.unshift({ id:'cc_'+Date.now(), category, title, desc, thumb:piPickedThumb, premium:true, createdAt:new Date().toISOString() });
+  customContent.unshift({ id:'cc_'+Date.now(), category, title, desc,
+    thumb: piPickedImages[0] || null, images: piPickedImages.slice(),
+    premium:true, createdAt:new Date().toISOString() });
   await saveCustomContent();
-  showToast('프리미엄 콘텐츠(데모)가 등록되었습니다: ' + title);
+  showToast('프리미엄 콘텐츠(데모)가 등록되었습니다: ' + title + (piPickedImages.length>1 ? ` (이미지 ${piPickedImages.length}장)` : ''));
   closePremiumImport();
   renderStore();
   renderCustom();
   renderCurate();
 }
+function previewPremiumItem(id){
+  const c = customContent.find(x=>x.id===id);
+  if(!c) return;
+  document.getElementById('ppTitle').textContent = c.title;
+  document.getElementById('ppBody').innerHTML = renderCarouselHtml(buildCarouselSlides([id]));
+  document.getElementById('ppMeta').textContent = `${c.category} · 작성자: (주)이씨오 · 등록일: ${(c.createdAt||'').slice(0,10)}`;
+  document.getElementById('premiumPreviewModal').classList.add('on');
+}
+function closePremiumPreview(){ document.getElementById('premiumPreviewModal').classList.remove('on'); }
 
 function showToast(msg){
   const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
