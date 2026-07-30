@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>alpas | 행복도서관</title>
+<title>alpas | 화도도서관</title>
 <style>
   :root{
     --navy:#2B2740; --topbar:#372F4C; --rail:#2F2A44;
@@ -358,10 +358,42 @@
   .bg-img-preview img{width:100%;height:100%;object-fit:cover;}
   .bg-row-actions{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap;}
 
+  /* 캡션(타이틀/설명) 표시 방식 */
+  .cap-mode-row{display:flex;gap:14px;flex-wrap:wrap;}
+  .cap-mode-row label{display:flex;align-items:center;gap:5px;font-size:12.5px;font-weight:500;color:var(--ink);background:none;border:none;padding:0;}
+  .cap-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:14px;}
+  .cap-card{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#fff;}
+  .cap-card .cap-img{aspect-ratio:4/3;background:#E3E7EC;display:flex;align-items:center;justify-content:center;color:var(--faint);font-weight:700;overflow:hidden;}
+  .cap-card .cap-img img{width:100%;height:100%;object-fit:cover;}
+  .cap-card .cap-below{padding:8px 10px;}
+  .cap-card .cap-below b{display:block;font-size:12.5px;margin-bottom:2px;}
+  .cap-card .cap-below p{font-size:11px;color:var(--muted);margin:0;line-height:1.4;}
+
+  /* 실제 도서관 사이트풍 플랫폼 미리보기 프레임 */
+  .pfv-site{display:flex;flex-direction:column;}
+  .pfv-site-topbar{display:flex;justify-content:space-between;align-items:center;padding:6px 20px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--line);background:#fff;}
+  .pfv-site-topbar-links span{margin:0 4px;}
+  .pfv-site-brand{display:flex;align-items:center;gap:20px;padding:14px 20px;border-bottom:1px solid var(--line);background:#fff;}
+  .pfv-site-logo{font-size:16px;font-weight:800;color:#3a4a1e;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+  .pfv-site-search{flex:1;max-width:420px;}
+  .pfv-site-search input{width:100%;border:1px solid var(--line);border-radius:20px;padding:8px 14px;font-size:12.5px;background:#F7F9FB;}
+  .pfv-site-nav{display:flex;gap:20px;padding:11px 20px;border-bottom:1px solid var(--line);font-size:12.5px;font-weight:600;color:#444;flex-wrap:wrap;background:#fff;}
+  .pfv-site-nav .pfv-nav-active{color:#5b7a1f;font-weight:800;position:relative;}
+  .pfv-site-nav .pfv-nav-active::after{content:'';position:absolute;left:0;right:0;bottom:-11px;height:2px;background:#5b7a1f;}
+  .pfv-site-content{padding:18px 20px;background:#F3F4F1;max-height:50vh;overflow:auto;}
+  .pfv-site-footer{padding:14px 20px 18px;border-top:1px solid var(--line);background:#fff;}
+  .pfv-footer-links{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);margin-bottom:12px;}
+  .pfv-footer-links span span{margin-right:10px;}
+  .pfv-footer-related{border:1px solid var(--line);border-radius:4px;padding:3px 9px;white-space:nowrap;}
+  .pfv-footer-brand{display:flex;align-items:center;gap:10px;font-size:12px;color:var(--ink);margin-bottom:4px;flex-wrap:wrap;}
+  .pfv-footer-brand b{font-weight:800;}
+  .pfv-footer-copy{font-size:10.5px;color:var(--faint);}
+
   /* 포함 자료 선택 리스트 배지 (등록자료 / 지역학 콘텐츠 구분) */
   .pick-item .src-badge{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:auto;white-space:nowrap;}
   .pick-item .src-badge.rec{background:var(--primary-tint);color:var(--primary);}
   .pick-item .src-badge.cc{background:var(--amber-tint);color:var(--amber);}
+  .pick-item .src-badge.premium{background:#FBE9C6;color:#8a5b00;}
 
   /* 지역학 콘텐츠 (콘텐츠 스토어 내 도서관 직접 구성 카테고리) */
   .cc-thumb-drop{width:88px;height:88px;border-radius:6px;border:1.5px dashed #C3CBD4;background:#FAFBFC;display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:10.5px;cursor:pointer;overflow:hidden;text-align:center;line-height:1.3;}
@@ -418,8 +450,8 @@
 <div class="view on" id="view-dashboard">
   <div class="db-topbar">
     <div class="db-logo">alpas</div>
-    <div class="db-libname">행복도서관 [교육(중대)]</div>
-    <select class="db-sel"><option>MA | 행복도서관</option></select>
+    <div class="db-libname">화도도서관(plus)</div>
+    <select class="db-sel"><option>MA | 화도도서관</option></select>
     <div class="db-spacer"></div>
     <div class="db-icons">
       <span class="tel">문의 : 1599-5478</span>
@@ -479,7 +511,7 @@
             <ul><li>[긴급 공지] 알라딘 Open API 사용자 인증 절차 도입 안내</li><li>테스트 자료 안내</li><li>고객센터 운영 관련 공지</li></ul>
           </div>
           <div class="db-notice"><h3>도서관 공지사항 +</h3>
-            <ul><li>행복도서관 청구기호 안내</li><li>매주 2·4 월요일은 휴관일입니다</li></ul>
+            <ul><li>화도도서관 청구기호 안내</li><li>매주 2·4 월요일은 휴관일입니다</li></ul>
           </div>
         </div>
       </div>
@@ -519,7 +551,7 @@
 <div class="view" id="view-menu">
   <div class="menu-topbar">
     <div class="db-logo">alpas</div>
-    <div class="db-libname" style="color:#C7C0DA;font-weight:400;">행복도서관 [교육(중대)]</div>
+    <div class="db-libname" style="color:#C7C0DA;font-weight:400;">화도도서관(plus)</div>
     <button class="menu-close" onclick="closeMenu()">✕</button>
   </div>
   <div class="menu-tabs">
@@ -555,7 +587,7 @@
     <div class="menu-col">
       <h4>기증</h4>
       <div class="menu-item live" onclick="openForm('기증')"><span class="chev">›</span>기증 자료 등록</div>
-      <div class="menu-item"><span class="chev">›</span>기증자관리</div>
+      <div class="menu-item live" onclick="openDonors()"><span class="chev">›</span>기증자관리</div>
     </div>
     <div class="menu-col">
       <h4>발행</h4>
@@ -583,6 +615,7 @@
       <div class="quick-nav" style="display:none;">
         <div class="quick-nav-item" onclick="quickNavGo('등록')">지역학 자료 등록</div>
         <div class="quick-nav-item" onclick="quickNavGo('기증')">기증 자료 등록</div>
+        <div class="quick-nav-item" onclick="quickNavGo('기증자관리')">기증자관리</div>
         <div class="quick-nav-item" onclick="quickNavGo('발행')">발행 · 플랫폼 게시관리</div>
       </div>
       <span class="app-crumb">&gt; <b id="formCrumb">등록자료관리</b></span>
@@ -673,9 +706,17 @@
           <label>생산자<span class="dc">Creator</span></label>
           <div class="field"><input type="text" id="f_creator" placeholder="자료를 만든 사람/단체"></div>
           <label>생산일자<span class="dc">Date</span></label>
-          <div class="field"><input type="date" id="f_prod_date"></div>
+          <div class="field" style="gap:8px;">
+            <input type="date" id="f_prod_date" style="flex:1;">
+            <label style="display:flex;align-items:center;gap:4px;font-size:12px;color:var(--muted);white-space:nowrap;background:none;border:none;padding:0;">
+              <input type="checkbox" id="f_prod_unknown" onchange="toggleProdUnknown(this.checked)"> 미상/미정
+            </label>
+          </div>
           <label>수집일자<span class="dc">Date</span></label>
-          <div class="field"><input type="date" id="f_collect_date"></div>
+          <div class="field" style="display:block;">
+            <input type="date" id="f_collect_date">
+            <div class="hint" id="collectDateHint" style="margin-top:4px;"></div>
+          </div>
         </div>
       </div>
 
@@ -683,6 +724,8 @@
         <div class="form-grid">
           <label>설명<span class="dc">Description</span></label>
           <div class="field"><textarea id="f_desc" placeholder="자료 내용에 대한 간단한 설명"></textarea></div>
+          <label>수집 URL</label>
+          <div class="field"><input type="text" id="f_url" placeholder="예: 유튜브 영상 주소, 신문기사 링크 등 디지털 원문 URL"></div>
           <label>지역 태그<span class="dc">Coverage</span></label>
           <div class="field"><input type="text" id="f_coverage" placeholder="예: 남양주시 화도읍 (쉼표 구분)"></div>
           <label>주제 태그<span class="dc">Subject</span></label>
@@ -719,8 +762,6 @@
         <div class="form-grid">
           <label>기증자 <span class="req">*</span><span class="dc">Contributor</span></label>
           <div class="field"><input type="text" id="f_contributor" placeholder="기증한 사람/단체"></div>
-          <label>기증일</label>
-          <div class="field"><input type="date" id="f_giftdate"></div>
           <label>접수번호 <span class="req">*</span></label>
           <div class="field">
             <select id="f_receipt" style="max-width:220px;"></select>
@@ -762,6 +803,37 @@
   </div>
 </div>
 
+<!-- ══════════════ 3-1. 기증자관리 화면 (실동작) ══════════════ -->
+<div class="view" id="view-donors">
+  <div class="app-topbar">
+    <button class="app-back" onclick="backToMenu()">‹</button>
+    <div class="db-logo" style="font-size:16px;">alpas</div>
+    <div class="app-crumb-wrap">
+      <span class="app-crumb-link" onclick="toggleQuickNav(event,this)">지역학자료</span>
+      <div class="quick-nav" style="display:none;">
+        <div class="quick-nav-item" onclick="quickNavGo('등록')">지역학 자료 등록</div>
+        <div class="quick-nav-item" onclick="quickNavGo('기증')">기증 자료 등록</div>
+        <div class="quick-nav-item" onclick="quickNavGo('기증자관리')">기증자관리</div>
+        <div class="quick-nav-item" onclick="quickNavGo('발행')">발행 · 플랫폼 게시관리</div>
+      </div>
+      <span class="app-crumb">&gt; <b>기증자관리</b></span>
+    </div>
+    <div class="app-topbar-spacer"></div>
+    <button class="db-icon-btn hamburger" onclick="openMenu('local')" title="전체메뉴">☰</button>
+  </div>
+  <div class="content">
+    <h1 class="page-title">기증자관리</h1>
+    <div class="page-sub">기증받은 지역학 자료를 기증자별로 모아 이력을 확인합니다.</div>
+    <div class="panel">
+      <table>
+        <thead><tr><th style="width:22%">기증자</th><th>기증 건수</th><th>최근 기증일</th><th>등록 상태</th><th style="width:100px"></th></tr></thead>
+        <tbody id="donorBody"></tbody>
+      </table>
+      <div class="empty" id="donorEmpty" style="display:none;"><b>기증 자료가 없습니다</b>'기증 자료 등록'에서 먼저 기증 자료를 등록해 보세요.</div>
+    </div>
+  </div>
+</div>
+
 <!-- ══════════════ 4. 발행(플랫폼 게시관리) 화면 (실동작) ══════════════ -->
 <div class="view" id="view-publish">
   <div class="app-topbar">
@@ -772,6 +844,7 @@
       <div class="quick-nav" style="display:none;">
         <div class="quick-nav-item" onclick="quickNavGo('등록')">지역학 자료 등록</div>
         <div class="quick-nav-item" onclick="quickNavGo('기증')">기증 자료 등록</div>
+        <div class="quick-nav-item" onclick="quickNavGo('기증자관리')">기증자관리</div>
         <div class="quick-nav-item" onclick="quickNavGo('발행')">발행 · 플랫폼 게시관리</div>
       </div>
       <span class="app-crumb">&gt; <b>발행 · 플랫폼 게시관리</b></span>
@@ -831,6 +904,11 @@
             <span class="hint" id="bgHint" style="margin:0;"></span>
           </div>
         </div></div>
+        <div class="brow"><label>캡션 표시</label><div class="cap-mode-row" id="capModeRow">
+          <label><input type="radio" name="capMode" value="overlay" onchange="setCaptionMode('overlay')"> 사진 안에 타이틀 표기</label>
+          <label><input type="radio" name="capMode" value="below-title" onchange="setCaptionMode('below-title')"> 사진 밖에 제목만 표기</label>
+          <label><input type="radio" name="capMode" value="below-full" onchange="setCaptionMode('below-full')"> 사진 밖에 제목+설명 표기</label>
+        </div></div>
         <div class="brow"><label>포함 자료</label><div class="pick-list" id="pickList"></div></div>
         <div style="display:flex;justify-content:flex-end;gap:8px;">
           <button type="button" class="btn" onclick="closeCollectionBuilder()">취소</button>
@@ -864,7 +942,7 @@
             <div class="store-empty">
               <div class="lock">🔒</div>
               기타 — 카테고리명·썸네일·세부내용을 도서관이 직접 구성해 컬렉션/전시에 삽입할 수 있는 기능입니다. 현재 이용 중인 버전에는 포함되어 있지 않습니다
-              <div><button onclick="requestUpgrade()">프리미엄 문의하기</button></div>
+              <div><button onclick="requestUpgrade('기타')">프리미엄 문의하기</button></div>
             </div>
           </div>
         </div>
@@ -922,17 +1000,64 @@
   </div>
 </div>
 
-<!-- 현재 플랫폼 전체 미리보기 팝업 -->
+<!-- 현재 플랫폼 전체 미리보기 팝업 (실제 도서관 사이트 GUI를 흉내낸 프레임) -->
 <div class="modal-backdrop" id="platformPreviewModal">
-  <div class="modal" style="max-width:900px;max-height:92vh;">
+  <div class="modal" style="max-width:1100px;max-height:92vh;">
     <div class="modal-head">
       <span>현재 플랫폼 미리보기</span>
       <button class="modal-x" onclick="closePlatformPreview()">✕</button>
     </div>
-    <div class="modal-body" id="platformPreviewBody" style="padding:16px;"></div>
+    <div class="modal-body" style="padding:0;">
+      <div class="pfv-site">
+        <div class="pfv-site-topbar">
+          <span>도서관 바로가기 ▾</span>
+          <div class="pfv-site-topbar-links"><span>로그인</span><span>|</span><span>회원가입</span><span>|</span><span>사이트맵</span></div>
+        </div>
+        <div class="pfv-site-brand">
+          <div class="pfv-site-logo">🏛 <b>화도도서관</b></div>
+          <div class="pfv-site-search"><input type="text" placeholder="도서명 또는 저자명 입력" disabled></div>
+        </div>
+        <div class="pfv-site-nav">
+          <span>이용안내</span><span>자료검색</span><span>문화행사</span><span>신청서비스</span><span>도서관소식</span><span>도서관안내</span><span>정약용 아카이브</span><span class="pfv-nav-active" id="pfvLocalNav">지역학</span><span>나만의도서관</span>
+        </div>
+        <div class="pfv-site-content" id="platformPreviewBody"></div>
+        <div class="pfv-site-footer">
+          <div class="pfv-footer-links">
+            <span><span>개인정보처리방침</span><span>이용약관</span><span>이메일무단수집거부</span></span>
+            <span class="pfv-footer-related">관련사이트 바로가기 ▾</span>
+          </div>
+          <div class="pfv-footer-brand"><b>화도도서관</b><span>경기도 남양주시 화도읍 수레로1260번길 33 · TEL : 031-590-4587</span></div>
+          <div class="pfv-footer-copy">Copyright ⓒ 남양주시 도서관사업소. ALL RIGHTS RESERVED.</div>
+        </div>
+      </div>
+    </div>
     <div class="modal-foot">
-      <span class="hint">저장된 단 구성을 순서 그대로 반영합니다</span>
+      <span class="hint">저장된 단 구성을 순서 그대로 반영합니다 (실제 사이트 배치를 흉내낸 미리보기)</span>
       <div><button type="button" class="btn primary" onclick="closePlatformPreview()">닫기</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- 프리미엄 콘텐츠 등록 (데모용 외부파일 불러오기) -->
+<div class="modal-backdrop" id="premiumImportModal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-head">
+      <span>프리미엄 콘텐츠 등록 (데모)</span>
+      <button class="modal-x" onclick="closePremiumImport()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="hint" style="margin-bottom:10px;display:block;">실제 서비스에서는 이씨오 콘텐츠사업부가 외부에서 등록하지만, 데모에서는 파일을 직접 불러와 바로 등록해볼 수 있습니다.</div>
+      <div class="brow"><label>카테고리</label><input type="text" id="pi_cat" placeholder="예: 카드콘텐츠"></div>
+      <div class="brow"><label>콘텐츠명</label><input type="text" id="pi_title" placeholder="콘텐츠명을 입력하세요"></div>
+      <div class="brow"><label>파일 불러오기</label><div><div class="cc-thumb-drop" id="piThumbDrop" onclick="document.getElementById('pi_file').click()">클릭하여 이미지/영상 썸네일 선택</div><input type="file" id="pi_file" accept="image/*" style="display:none" onchange="handlePiThumb(this.files[0])"></div></div>
+      <div class="brow"><label>세부내용</label><textarea id="pi_desc" placeholder="콘텐츠 상세 설명을 입력하세요"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <span class="hint">등록 즉시 '지역학 콘텐츠' 탭 → 템플릿 미리보기·바로 적용에서 사용할 수 있습니다</span>
+      <div>
+        <button type="button" class="btn" onclick="closePremiumImport()">취소</button>
+        <button type="button" class="btn primary" onclick="savePremiumImport()">등록</button>
+      </div>
     </div>
   </div>
 </div>
@@ -958,6 +1083,7 @@ let customContent = [];
 let builderPickedIds = new Set();
 let builderThumb = null;
 let builderBg = null;
+let builderCaptionMode = 'overlay';
 let ccPickedThumb = null;
 let ccEditingId = null;
 let tpvTemplate = null;
@@ -979,6 +1105,9 @@ const TEMPLATES = [
   {id:'oral', cat:'인물·구술형', name:'오디오가이드형', desc:'구술채록·음성기록 특화, 파형 인터페이스로 재생목록 구성', shapes:['8,45,6,15','19,30,6,40','30,15,6,60','41,35,6,30','52,20,6,50','63,40,6,20','74,25,6,45','85,38,6,24']},
   {id:'mosaic', cat:'몰입형', name:'아카이브월형', desc:'모자이크 벽면 구성, 밀도 높은 몰입형 탐색', shapes:['5,5,24,28','32,5,30,16','65,5,30,45','5,36,24,20','32,24,30,32','5,59,24,20','32,59,63,20']},
   {id:'flipbook', cat:'몰입형', name:'아카이브북형', desc:'페이지 넘김식, 디지털 북 형태로 전시', shapes:['12,8,35,84','53,8,35,84']},
+  {id:'cardswipe', cat:'기본형', name:'카드 스와이프형', desc:'카드콘텐츠를 좌우로 스와이프하며 탐색', shapes:['2,30,17,40','21,30,17,40','40,30,17,40','59,30,17,40','78,30,20,40']},
+  {id:'booktrailer', cat:'몰입형', name:'북트레일러형', desc:'긴 영상이 메인 재생 썸네일로 크게 노출되는 형태', shapes:['10,8,80,72']},
+  {id:'quotecard', cat:'스토리형', name:'인용·설명 카드형', desc:'사진과 제목·설명 텍스트를 카드로 나란히 배치, 캡션을 사진 밖에 표시할 때 특히 잘 어울림', shapes:['5,5,42,42','53,5,42,42','5,53,42,42','53,53,42,42']},
 ];
 
 const STORE_CATALOG = {
@@ -1006,8 +1135,8 @@ function recordToRow(r){
     creator:r.creator||'', contributor:r.contributor||'',
     prod_date:r.prodDate||null, collect_date:r.collectDate||null,
     description:r.desc||'', coverage:r.coverage||'', subject:r.subject||'',
-    rights:r.rights, source:r.source||'', alpas_list:r.alpasList||[],
-    gift_date:r.giftDate||null, receipt_no:r.receiptNo||'',
+    rights:r.rights, source:r.source||'', source_url:r.sourceUrl||'', alpas_list:r.alpasList||[],
+    receipt_no:r.receiptNo||'',
     files:r.files||[], status:r.status, reg_no:r.regNo||'',
     published:!!r.published, created_at:r.createdAt||new Date().toISOString()
   };
@@ -1018,28 +1147,28 @@ function rowToRecord(row){
     creator:row.creator, contributor:row.contributor,
     prodDate:row.prod_date, collectDate:row.collect_date,
     desc:row.description, coverage:row.coverage, subject:row.subject,
-    rights:row.rights, source:row.source, alpasList:row.alpas_list||[],
-    giftDate:row.gift_date, receiptNo:row.receipt_no,
+    rights:row.rights, source:row.source, sourceUrl:row.source_url, alpasList:row.alpas_list||[],
+    receiptNo:row.receipt_no,
     files:row.files||[], status:row.status, regNo:row.reg_no,
     published:row.published, createdAt:row.created_at
   };
 }
 function collectionToRow(c,i){
   return { id:c.id, template_id:c.templateId, title:c.title, description:c.desc||'',
-    thumb:c.thumb||null, bg:c.bg||null, item_ids:c.itemIds||[], ord:i,
+    thumb:c.thumb||null, bg:c.bg||null, caption_mode:c.captionMode||'overlay', item_ids:c.itemIds||[], ord:i,
     created_at:c.createdAt||new Date().toISOString() };
 }
 function rowToCollection(row){
   return { id:row.id, templateId:row.template_id, title:row.title, desc:row.description,
-    thumb:row.thumb, bg:row.bg, itemIds:row.item_ids||[], createdAt:row.created_at };
+    thumb:row.thumb, bg:row.bg, captionMode:row.caption_mode||'overlay', itemIds:row.item_ids||[], createdAt:row.created_at };
 }
 function ccToRow(c){
   return { id:c.id, category:c.category, title:c.title, description:c.desc||'',
-    thumb:c.thumb||null, created_at:c.createdAt||new Date().toISOString() };
+    thumb:c.thumb||null, is_premium:!!c.premium, created_at:c.createdAt||new Date().toISOString() };
 }
 function rowToCc(row){
   return { id:row.id, category:row.category, title:row.title, desc:row.description,
-    thumb:row.thumb, createdAt:row.created_at };
+    thumb:row.thumb, premium:!!row.is_premium, createdAt:row.created_at };
 }
 function settingsToRow(){
   return { id:1, template_id:settings.templateId, plan:settings.plan,
@@ -1132,9 +1261,53 @@ function toggleQuickNav(e, el){
 }
 function quickNavGo(target){
   document.querySelectorAll('.quick-nav').forEach(m=>m.style.display='none');
-  if(target==='발행') openPublish(); else openForm(target);
+  if(target==='발행') openPublish();
+  else if(target==='기증자관리') openDonors();
+  else openForm(target);
 }
 document.addEventListener('click', ()=>document.querySelectorAll('.quick-nav').forEach(m=>m.style.display='none'));
+
+/* 기증자관리 */
+function openDonors(){
+  document.getElementById('view-menu').classList.remove('on');
+  showView('view-donors');
+  renderDonors();
+}
+function renderDonors(){
+  const gifts = records.filter(r=>r.acquisition==='기증');
+  const byDonor = {};
+  gifts.forEach(r=>{
+    const name = (r.contributor||'').trim() || '이름 미상';
+    (byDonor[name] = byDonor[name] || []).push(r);
+  });
+  const names = Object.keys(byDonor).sort((a,b)=>byDonor[b].length - byDonor[a].length);
+  document.getElementById('donorBody').innerHTML = names.map(name=>{
+    const items = byDonor[name].slice().sort((a,b)=>(b.collectDate||'').localeCompare(a.collectDate||''));
+    const latest = items[0] && items[0].collectDate ? items[0].collectDate : '날짜 미상';
+    const pending = items.filter(r=>r.status==='접수중').length;
+    const statusHtml = pending
+      ? `<span class="status-pill 접수중">등록대기 ${pending}건</span>`
+      : `<span class="status-pill 등록완료">모두 등록완료</span>`;
+    const detailHtml = items.map(r=>`
+      <div class="file-chip"><span>${escapeHtml(r.title)}</span><span class="sz">${escapeHtml(r.type)} · ${r.collectDate||'날짜 미상'} · ${r.status}</span></div>`).join('');
+    return `
+    <tr>
+      <td><b>${escapeHtml(name)}</b></td>
+      <td>${items.length}건</td>
+      <td>${latest}</td>
+      <td>${statusHtml}</td>
+      <td><button type="button" class="btn sm" onclick="toggleDonorDetail(this)">자료 보기</button></td>
+    </tr>
+    <tr class="donor-detail" style="display:none;">
+      <td colspan="5"><div class="file-list">${detailHtml}</div></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('donorEmpty').style.display = names.length ? 'none' : 'block';
+}
+function toggleDonorDetail(btn){
+  const row = btn.closest('tr').nextElementSibling;
+  row.style.display = row.style.display==='none' ? 'table-row' : 'none';
+}
 
 /* 등록/기증 목록화면 */
 let selectedIds = new Set();
@@ -1213,7 +1386,7 @@ function renderGrid(){
     const fmts = [...new Set(files.map(fileExt))];
     const fmtHtml = fmts.length ? fmts.map(t=>`<span class="fmt-pill">${escapeHtml(t)}</span>`).join('') : '<span style="color:var(--faint)">—</span>';
     return `
-    <tr class="${selectedIds.has(r.id)?'sel':''}" onclick="rowClick(event,'${r.id}')">
+    <tr class="${selectedIds.has(r.id)?'sel':''}" onclick="rowClick(event,'${r.id}')" ondblclick="rowDblClick(event,'${r.id}')" title="더블클릭하면 바로 수정할 수 있습니다">
       <td onclick="event.stopPropagation()"><input type="checkbox" ${selectedIds.has(r.id)?'checked':''} onchange="toggleSelect('${r.id}', this.checked)"></td>
       <td><div class="title-cell">${thumb}<div class="txt"><b>${escapeHtml(r.title)}</b></div></div></td>
       <td>${fmtHtml}</td>
@@ -1228,6 +1401,12 @@ function renderGrid(){
   syncToolbar();
 }
 function rowClick(e, id){ toggleSelect(id, !selectedIds.has(id)); }
+function rowDblClick(e, id){
+  selectedIds.clear();
+  selectedIds.add(id);
+  renderGrid();
+  openModal('edit');
+}
 function toggleSelect(id, checked){
   checked ? selectedIds.add(id) : selectedIds.delete(id);
   renderGrid();
@@ -1298,9 +1477,13 @@ function openModal(mode){
     document.getElementById('f_title').value = r.title;
     document.getElementById('f_type').value = r.type;
     document.getElementById('f_creator').value = r.creator||'';
-    document.getElementById('f_prod_date').value = r.prodDate || r.date || '';
+    const isProdUnknown = (r.prodDate === '미상');
+    document.getElementById('f_prod_unknown').checked = isProdUnknown;
+    document.getElementById('f_prod_date').value = isProdUnknown ? '' : (r.prodDate || r.date || '');
+    document.getElementById('f_prod_date').disabled = isProdUnknown;
     document.getElementById('f_collect_date').value = r.collectDate || '';
     document.getElementById('f_desc').value = r.desc||'';
+    document.getElementById('f_url').value = r.sourceUrl||'';
     document.getElementById('f_coverage').value = r.coverage||'';
     subjectTags = r.subject ? r.subject.split(',').map(s=>s.trim()).filter(Boolean) : [];
     renderSubjectTags();
@@ -1309,7 +1492,6 @@ function openModal(mode){
     pendingAlpasLinks = r.alpasList ? r.alpasList.slice() : (r.alpas ? [{title:r.alpas, call:''}] : []);
     renderAlpasLinkedList();
     document.getElementById('f_contributor').value = r.contributor||'';
-    document.getElementById('f_giftdate').value = r.giftDate||'';
     pendingFiles = r.files ? r.files.slice() : [];
     renderFileList();
     populateReceiptSelect(r.receiptNo);
@@ -1317,13 +1499,22 @@ function openModal(mode){
     populateReceiptSelect();
   }
   document.getElementById('modalTitle').textContent = (mode==='edit'?'지역학 자료 수정':'지역학 자료 입력') + ' · ' + currentAcq;
+  document.getElementById('collectDateHint').textContent = currentAcq==='기증'
+    ? '기증 자료는 이 날짜가 접수(기증)일로 함께 쓰입니다'
+    : '도서관이 자료를 수집한 날짜';
   switchMTab('basic');
   document.getElementById('formModal').classList.add('on');
 }
 function closeModal(){ document.getElementById('formModal').classList.remove('on'); }
+function toggleProdUnknown(checked){
+  document.getElementById('f_prod_date').disabled = checked;
+  if(checked) document.getElementById('f_prod_date').value = '';
+}
 function clearModalFields(){
-  ['f_title','f_creator','f_prod_date','f_collect_date','f_desc','f_coverage','f_source','f_contributor','f_giftdate'].forEach(id=>document.getElementById(id).value='');
+  ['f_title','f_creator','f_prod_date','f_collect_date','f_desc','f_url','f_coverage','f_source','f_contributor'].forEach(id=>document.getElementById(id).value='');
   document.getElementById('f_type').value='';
+  document.getElementById('f_prod_unknown').checked = false;
+  document.getElementById('f_prod_date').disabled = false;
   document.querySelector('input[name=rights][value="공개"]').checked = true;
   pendingFiles = []; renderFileList();
   pendingAlpasLinks = []; renderAlpasLinkedList();
@@ -1360,16 +1551,16 @@ async function submitForm(){
   const base = {
     title, type,
     creator: document.getElementById('f_creator').value.trim(),
-    prodDate: document.getElementById('f_prod_date').value,
+    prodDate: document.getElementById('f_prod_unknown').checked ? '미상' : document.getElementById('f_prod_date').value,
     collectDate: document.getElementById('f_collect_date').value,
     desc: document.getElementById('f_desc').value.trim(),
+    sourceUrl: document.getElementById('f_url').value.trim(),
     coverage: document.getElementById('f_coverage').value.trim(),
     subject: subjectTags.join(','),
     rights: document.querySelector('input[name=rights]:checked').value,
     source: document.getElementById('f_source').value.trim(),
     alpasList: pendingAlpasLinks.slice(),
     contributor: document.getElementById('f_contributor').value.trim(),
-    giftDate: document.getElementById('f_giftdate').value,
     receiptNo: currentAcq==='기증' ? document.getElementById('f_receipt').value : '',
     files: pendingFiles,
   };
@@ -1618,12 +1809,12 @@ function renderCurate(){
   }
 
   const pub = records.filter(r=>r.published);
-  const cc = settings.plan==='premium' ? customContent : [];
+  const cc = settings.plan==='premium' ? customContent : customContent.filter(c=>c.premium);
   const pickHtml = pub.map(r=>`
       <label class="pick-item"><input type="checkbox" value="${r.id}" ${builderPickedIds.has(r.id)?'checked':''} onchange="togglePick('${r.id}')"><span>${escapeHtml(r.title)} <span style="color:var(--faint)">(${r.type})</span></span><span class="src-badge rec">등록자료</span></label>
     `).join('') +
     cc.map(c=>`
-      <label class="pick-item"><input type="checkbox" value="${c.id}" ${builderPickedIds.has(c.id)?'checked':''} onchange="togglePick('${c.id}')"><span>${escapeHtml(c.title)} <span style="color:var(--faint)">(${escapeHtml(c.category)})</span></span><span class="src-badge cc">기타</span></label>
+      <label class="pick-item"><input type="checkbox" value="${c.id}" ${builderPickedIds.has(c.id)?'checked':''} onchange="togglePick('${c.id}')"><span>${escapeHtml(c.title)} <span style="color:var(--faint)">(${escapeHtml(c.category)})</span></span><span class="src-badge ${c.premium?'premium':'cc'}">${c.premium?'프리미엄':'기타'}</span></label>
     `).join('');
   document.getElementById('pickList').innerHTML = pickHtml || `<span class="hint">게시된 자료가 없습니다. '게시관리' 탭에서 먼저 게시하세요.</span>`;
 
@@ -1643,6 +1834,9 @@ function renderCurate(){
   document.getElementById('bgHint').textContent = !builderBg
     ? '배경이 설정되지 않았습니다 (기본 회색 배경)'
     : (builderBg.type==='color' ? `선택된 색상: ${builderBg.value}` : '업로드한 이미지가 배경으로 설정되었습니다');
+
+  const capRadio = document.querySelector(`input[name=capMode][value="${builderCaptionMode}"]`);
+  if(capRadio) capRadio.checked = true;
 
   document.getElementById('collGrid').innerHTML = collections.map((c,i)=>{
     const ccCount = c.itemIds.filter(id=>id.startsWith('cc_')).length;
@@ -1679,26 +1873,33 @@ function openTplPreview(id){
   document.getElementById('tplPreviewModal').classList.add('on');
 }
 function closeTplPreview(){ document.getElementById('tplPreviewModal').classList.remove('on'); }
+function tpvCurateItems(){
+  const pub = records.filter(r=>r.published).map(r=>({id:r.id, title:r.title, meta:r.type, badge:'rec'}));
+  const cc = (settings.plan==='premium' ? customContent : customContent.filter(c=>c.premium))
+    .map(c=>({id:c.id, title:c.title, meta:c.category, badge:c.premium?'premium':'cc'}));
+  return pub.concat(cc);
+}
 function renderTplPreview(){
-  const pub = records.filter(r=>r.published);
+  const items = tpvCurateItems();
   const slots = tpvTemplate.shapes;
   const stageHtml = slots.map((s,i)=>{
     const [x,y,w,h] = s.split(',');
-    const rec = pub.find(r=>r.id===tpvPickedIds[i]);
-    const img = rec && rec.files.find(f=>f.type && f.type.startsWith('image/'));
+    const it = resolveCurateItem(tpvPickedIds[i]);
     let inner = String(i+1);
-    if(rec && img){ inner = `<img src="${img.data}"><div class="cap">${escapeHtml(rec.title)}</div>`; }
-    else if(rec){ inner = `<div class="cap" style="position:static;background:none;color:var(--muted);">${escapeHtml(rec.title)}</div>`; }
+    if(it && it.img){ inner = `<img src="${it.img}"><div class="cap">${escapeHtml(it.title)}</div>`; }
+    else if(it){ inner = `<div class="cap" style="position:static;background:none;color:var(--muted);">${escapeHtml(it.title)}</div>`; }
     return `<div class="slot" style="left:${x}%;top:${y}%;width:${w}%;height:${h}%;">${inner}</div>`;
   }).join('');
   document.getElementById('tpvStage').innerHTML = `
     <div style="font-size:12.5px;color:var(--muted);margin-bottom:8px;">${escapeHtml(tpvTemplate.desc)}</div>
     <div class="tpv-canvas">${stageHtml}</div>`;
 
-  document.getElementById('tpvPickList').innerHTML = pub.length ? pub.map(r=>{
-    const order = tpvPickedIds.indexOf(r.id);
-    return `<label class="pick-item"><input type="checkbox" ${order>-1?'checked':''} onchange="toggleTpvPick('${r.id}')"><span>${escapeHtml(r.title)} <span style="color:var(--faint)">(${r.type})</span></span>${order>-1?`<span class="src-badge rec">${order+1}번 슬롯</span>`:''}</label>`;
-  }).join('') : `<span class="hint">게시된 자료가 없습니다. '게시관리' 탭에서 먼저 게시하세요.</span>`;
+  document.getElementById('tpvPickList').innerHTML = items.length ? items.map(it=>{
+    const order = tpvPickedIds.indexOf(it.id);
+    const badgeLabel = order>-1 ? `${order+1}번 슬롯` : (it.badge==='premium' ? '프리미엄' : it.badge==='cc' ? '기타' : '등록자료');
+    const badgeClass = order>-1 ? 'rec' : it.badge;
+    return `<label class="pick-item"><input type="checkbox" ${order>-1?'checked':''} onchange="toggleTpvPick('${it.id}')"><span>${escapeHtml(it.title)} <span style="color:var(--faint)">(${escapeHtml(it.meta)})</span></span><span class="src-badge ${badgeClass}">${badgeLabel}</span></label>`;
+  }).join('') : `<span class="hint">게시된 자료가 없습니다. '게시관리' 탭에서 먼저 게시하거나 지역학 콘텐츠를 등록하세요.</span>`;
 
   const targetSel = document.getElementById('tpvTarget');
   const prevVal = targetSel.value;
@@ -1722,9 +1923,8 @@ function applyTplPreview(){
   settings.templateId = tpvTemplate.id;
   saveSettings();
   builderPickedIds = new Set(tpvPickedIds);
-  const pub = records.filter(r=>r.published);
-  const firstWithImg = tpvPickedIds.map(id=>pub.find(r=>r.id===id)).find(r=>r && r.files.find(f=>f.type && f.type.startsWith('image/')));
-  builderThumb = firstWithImg ? firstWithImg.files.find(f=>f.type && f.type.startsWith('image/')).data : null;
+  const firstWithImg = tpvPickedIds.map(id=>resolveCurateItem(id)).find(it=>it && it.img);
+  builderThumb = firstWithImg ? firstWithImg.img : null;
   const applied = tpvTemplate;
   closeTplPreview();
 
@@ -1733,12 +1933,14 @@ function applyTplPreview(){
     document.getElementById('c_title').value = '';
     document.getElementById('c_desc').value = '';
     builderBg = null;
+    builderCaptionMode = 'overlay';
   } else {
     const c = collections.find(x=>x.id===target);
     editingCollectionId = target;
     document.getElementById('c_title').value = c ? c.title : '';
     document.getElementById('c_desc').value = c ? (c.desc||'') : '';
     builderBg = c ? (c.bg || null) : null;
+    builderCaptionMode = c ? (c.captionMode || 'overlay') : 'overlay';
   }
   renderCurate();
   document.getElementById('collBuilder').style.display = 'block';
@@ -1755,6 +1957,7 @@ function openNewCollection(){
   builderPickedIds = new Set();
   builderThumb = null;
   builderBg = null;
+  builderCaptionMode = 'overlay';
   document.getElementById('collBuilder').style.display = 'block';
   renderCurate();
   document.getElementById('collBuilder').scrollIntoView({behavior:'smooth', block:'start'});
@@ -1769,6 +1972,7 @@ function editCollection(id){
   builderPickedIds = new Set(c.itemIds);
   builderThumb = c.thumb || null;
   builderBg = c.bg || null;
+  builderCaptionMode = c.captionMode || 'overlay';
   document.getElementById('collBuilder').style.display = 'block';
   renderCurate();
   document.getElementById('collBuilder').scrollIntoView({behavior:'smooth', block:'start'});
@@ -1782,6 +1986,7 @@ function togglePick(id){ builderPickedIds.has(id) ? builderPickedIds.delete(id) 
 function pickThumb(data){ builderThumb = data; renderCurate(); }
 function pickBgColor(color){ builderBg = {type:'color', value:color}; renderCurate(); }
 function clearBg(){ builderBg = null; renderCurate(); }
+function setCaptionMode(mode){ builderCaptionMode = mode; }
 function handleBgImage(file){
   if(!file) return;
   if(file.size > 4*1024*1024){ showToast('4MB를 초과해 데모에서는 첨부할 수 없습니다'); return; }
@@ -1796,14 +2001,14 @@ async function saveCollection(){
   const desc = document.getElementById('c_desc').value.trim();
   if(editingCollectionId){
     const c = collections.find(x=>x.id===editingCollectionId);
-    if(c){ Object.assign(c, { templateId:settings.templateId, title, desc, thumb:builderThumb, bg:builderBg, itemIds:Array.from(builderPickedIds) }); }
+    if(c){ Object.assign(c, { templateId:settings.templateId, title, desc, thumb:builderThumb, bg:builderBg, captionMode:builderCaptionMode, itemIds:Array.from(builderPickedIds) }); }
     await saveCollections();
     showToast('단이 수정되었습니다: ' + title);
   } else {
     if(collections.length >= COLLECTION_MAX){ showToast(`플랫폼 단은 최대 ${COLLECTION_MAX}개까지 만들 수 있습니다`); return; }
     collections.push({
       id:'coll_'+Date.now(), templateId:settings.templateId, title, desc,
-      thumb:builderThumb, bg:builderBg, itemIds:Array.from(builderPickedIds), createdAt:new Date().toISOString()
+      thumb:builderThumb, bg:builderBg, captionMode:builderCaptionMode, itemIds:Array.from(builderPickedIds), createdAt:new Date().toISOString()
     });
     await saveCollections();
     showToast('단이 추가되었습니다: ' + title);
@@ -1832,18 +2037,20 @@ function resolveCurateItem(id){
   if(!id) return null;
   if(id.startsWith('cc_')){
     const c = customContent.find(x=>x.id===id);
-    return c ? {title:c.title, img:c.thumb||null} : null;
+    return c ? {title:c.title, desc:c.desc||'', img:c.thumb||null} : null;
   }
   const r = records.find(x=>x.id===id);
   if(!r) return null;
   const imgFile = r.files && r.files.find(f=>f.type && f.type.startsWith('image/'));
-  return {title:r.title, img: imgFile ? imgFile.data : null};
+  return {title:r.title, desc:r.desc||'', img: imgFile ? imgFile.data : null};
 }
-function openPlatformPreview(){
-  const body = document.getElementById('platformPreviewBody');
-  body.innerHTML = collections.length ? collections.map((c,i)=>{
-    const tpl = TEMPLATES.find(t=>t.id===c.templateId) || TEMPLATES[0];
-    const ids = c.itemIds || [];
+function renderCurateSectionBody(c, tpl){
+  const ids = c.itemIds || [];
+  let bgStyle = '';
+  if(c.bg && c.bg.type==='color'){ bgStyle = `background:${c.bg.value};`; }
+  else if(c.bg && c.bg.type==='image'){ bgStyle = `background-image:url('${c.bg.value}');background-size:cover;background-position:center;`; }
+  const mode = c.captionMode || 'overlay';
+  if(mode==='overlay'){
     const slotsHtml = tpl.shapes.map((s,si)=>{
       const [x,y,w,h] = s.split(',');
       const it = resolveCurateItem(ids[si]);
@@ -1852,9 +2059,23 @@ function openPlatformPreview(){
       else if(it){ inner = `<div class="cap" style="position:static;background:none;color:var(--muted);">${escapeHtml(it.title)}</div>`; }
       return `<div class="slot" style="left:${x}%;top:${y}%;width:${w}%;height:${h}%;">${inner}</div>`;
     }).join('');
-    let canvasStyle = '';
-    if(c.bg && c.bg.type==='color'){ canvasStyle = `background:${c.bg.value};`; }
-    else if(c.bg && c.bg.type==='image'){ canvasStyle = `background-image:url('${c.bg.value}');background-size:cover;background-position:center;`; }
+    return `<div class="tpv-canvas" style="${bgStyle}">${slotsHtml}</div>`;
+  }
+  const cardsHtml = tpl.shapes.map((s,si)=>{
+    const it = resolveCurateItem(ids[si]);
+    const imgHtml = it && it.img ? `<img src="${it.img}">` : String(si+1);
+    if(!it) return `<div class="cap-card"><div class="cap-img">${imgHtml}</div></div>`;
+    const descHtml = (mode==='below-full' && it.desc) ? `<p>${escapeHtml(it.desc)}</p>` : '';
+    return `<div class="cap-card"><div class="cap-img">${imgHtml}</div><div class="cap-below"><b>${escapeHtml(it.title)}</b>${descHtml}</div></div>`;
+  }).join('');
+  return `<div class="cap-grid" style="${bgStyle}padding:10px;border-radius:6px;">${cardsHtml}</div>`;
+}
+function openPlatformPreview(){
+  const localNavEl = document.getElementById('pfvLocalNav');
+  if(localNavEl) localNavEl.textContent = settings.localStudyName || '지역학';
+  const body = document.getElementById('platformPreviewBody');
+  body.innerHTML = collections.length ? collections.map((c,i)=>{
+    const tpl = TEMPLATES.find(t=>t.id===c.templateId) || TEMPLATES[0];
     return `
     <div class="pfv-section">
       <div class="pfv-section-head">
@@ -1865,7 +2086,7 @@ function openPlatformPreview(){
         </div>
         <button type="button" onclick="closePlatformPreview();editCollection('${c.id}')">이 단 수정</button>
       </div>
-      <div class="pfv-section-body"><div class="tpv-canvas" style="${canvasStyle}">${slotsHtml}</div></div>
+      <div class="pfv-section-body">${renderCurateSectionBody(c, tpl)}</div>
     </div>`;
   }).join('') : `<div class="empty" style="padding:40px 10px;"><b>구성된 단이 없습니다</b>'+ 새 단 추가'로 플랫폼의 첫 단을 만들어 보세요.</div>`;
   document.getElementById('platformPreviewModal').classList.add('on');
@@ -1979,7 +2200,7 @@ function renderStore(){
           <div class="store-card">
             <div class="nm">${it.name}</div>
             <div class="meta">${it.meta}<br>제작: 이씨오 콘텐츠사업부</div>
-            <button onclick="requestPurchase('${it.name.replace(/'/g,"\\'")}')">구매 신청</button>
+            <button onclick="requestPurchase('${cat.replace(/'/g,"\\'")}','${it.name.replace(/'/g,"\\'")}')">구매 신청(데모 등록)</button>
           </div>`).join('')}
       </div></div>`;
     }
@@ -1987,13 +2208,45 @@ function renderStore(){
       <div class="store-empty">
         <div class="lock">🔒</div>
         프리미엄 콘텐츠 — 현재 이용 중인 버전에는 포함된 콘텐츠가 없습니다
-        <div><button onclick="requestUpgrade()">프리미엄 문의하기</button></div>
+        <div><button onclick="requestUpgrade('${cat.replace(/'/g,"\\'")}')">프리미엄 문의하기</button></div>
       </div>
     </div></div>`;
   }).join('');
 }
-function requestPurchase(name){ showToast('구매 신청이 접수되었습니다: ' + name); }
-function requestUpgrade(){ showToast('프리미엄 업그레이드 문의가 접수되었습니다'); }
+function requestPurchase(cat, name){ openPremiumImport(cat, name); }
+function requestUpgrade(cat){ openPremiumImport(cat||'', ''); }
+
+/* ── 프리미엄 콘텐츠 등록 모달 (데모: 외부 파일 불러와 바로 등록) ── */
+let piPickedThumb = null;
+function openPremiumImport(category, title){
+  document.getElementById('pi_cat').value = category || '';
+  document.getElementById('pi_title').value = title || '';
+  document.getElementById('pi_desc').value = '';
+  piPickedThumb = null;
+  document.getElementById('piThumbDrop').innerHTML = '클릭하여 이미지/영상 썸네일 선택';
+  document.getElementById('premiumImportModal').classList.add('on');
+}
+function closePremiumImport(){ document.getElementById('premiumImportModal').classList.remove('on'); }
+function handlePiThumb(file){
+  if(!file) return;
+  if(file.size > 4*1024*1024){ showToast('4MB를 초과해 데모에서는 첨부할 수 없습니다'); return; }
+  const reader = new FileReader();
+  reader.onload = ()=>{ piPickedThumb = reader.result; document.getElementById('piThumbDrop').innerHTML = `<img src="${piPickedThumb}">`; };
+  reader.readAsDataURL(file);
+}
+async function savePremiumImport(){
+  const category = document.getElementById('pi_cat').value.trim();
+  const title = document.getElementById('pi_title').value.trim();
+  if(!category || !title){ showToast('카테고리와 콘텐츠명을 입력해 주세요'); return; }
+  const desc = document.getElementById('pi_desc').value.trim();
+  customContent.unshift({ id:'cc_'+Date.now(), category, title, desc, thumb:piPickedThumb, premium:true, createdAt:new Date().toISOString() });
+  await saveCustomContent();
+  showToast('프리미엄 콘텐츠(데모)가 등록되었습니다: ' + title);
+  closePremiumImport();
+  renderStore();
+  renderCustom();
+  renderCurate();
+}
 
 function showToast(msg){
   const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
