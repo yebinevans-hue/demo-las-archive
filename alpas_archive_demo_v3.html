@@ -248,6 +248,7 @@
   tbody tr{cursor:pointer;}
   .status-pill{font-size:11px;padding:2px 8px;border-radius:10px;white-space:nowrap;}
   .status-pill.접수중{background:var(--amber-tint);color:var(--amber);}
+  .status-pill.검수중{background:var(--primary-tint);color:var(--primary);}
   .status-pill.등록완료{background:#E7F4EC;color:var(--ok);}
   .regno{font-family:ui-monospace,Consolas,monospace;font-size:11.5px;color:var(--muted);}
 
@@ -444,6 +445,24 @@
   .ord-book-chip .x{cursor:pointer;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.12);display:flex;align-items:center;justify-content:center;font-size:10px;}
   .ord-cat-row{display:flex;align-items:center;gap:8px;margin-bottom:6px;}
   .ord-cat-row select{width:auto;}
+
+  /* 콘텐츠 제작 요청 상태 스테퍼 */
+  .ord-stepper{display:flex;align-items:flex-start;min-width:280px;}
+  .ord-step{flex:1;display:flex;flex-direction:column;align-items:center;position:relative;text-align:center;}
+  .ord-step .dot{width:16px;height:16px;border-radius:50%;background:var(--line);border:2px solid var(--line);z-index:1;}
+  .ord-step .lbl{font-size:10px;color:var(--faint);margin-top:4px;white-space:nowrap;}
+  .ord-step::before{content:'';position:absolute;top:7px;left:-50%;width:100%;height:2px;background:var(--line);z-index:0;}
+  .ord-step:first-child::before{content:none;}
+  .ord-step.done .dot{background:var(--ok);border-color:var(--ok);}
+  .ord-step.done::before{background:var(--ok);}
+  .ord-step.done .lbl{color:var(--ok);}
+  .ord-step.current .dot{background:var(--primary);border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-tint);}
+  .ord-step.current .lbl{color:var(--primary);font-weight:700;}
+
+  /* 화도학 용어집 */
+  .th-group{margin-bottom:12px;}
+  .th-group-head{font-size:12px;font-weight:800;color:var(--primary);margin-bottom:6px;}
+  .th-group-items{display:flex;flex-wrap:wrap;gap:6px;}
 
   /* 포함 자료 선택 리스트 배지 (등록자료 / 지역학 콘텐츠 구분) */
   .pick-item .src-badge{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:auto;white-space:nowrap;}
@@ -714,9 +733,10 @@
         <button class="btn primary" onclick="openModal('new')">입력</button>
         <button class="btn" id="btnEdit" onclick="openModal('edit')" disabled>수정</button>
         <button class="btn" id="btnDelete" onclick="deleteSelected()" disabled>삭제</button>
+        <button class="btn" id="btnInspect" onclick="startInspection()" style="display:none;" disabled>검수 시작</button>
         <button class="btn" id="btnHandover" onclick="handoverSelected()" style="display:none;" disabled>등록인계</button>
         <button class="btn" onclick="exportExcel()">출력</button>
-        <span class="toolbar-hint">선택 후 수정·삭제·등록인계를 사용할 수 있습니다</span>
+        <span class="toolbar-hint">선택 후 수정·삭제·검수 시작·등록인계를 사용할 수 있습니다</span>
       </div>
 
       <table>
@@ -784,7 +804,7 @@
           <div class="field"><input type="text" id="f_url" placeholder="예: 유튜브 영상 주소, 신문기사 링크 등 디지털 원문 URL"></div>
           <label>지역 태그<span class="dc">Coverage</span></label>
           <div class="field"><input type="text" id="f_coverage" placeholder="예: 남양주시 화도읍 (쉼표 구분)"></div>
-          <label>주제 태그<span class="dc">Subject</span></label>
+          <label>주제 태그<span class="dc">Subject</span><button type="button" class="btn sm" style="margin-left:6px;" onclick="openThesaurus()">📖 화도학 용어집 바로가기</button></label>
           <div class="field" style="position:relative;display:block;">
             <div class="tag-input" id="subjectTagBox" onclick="document.getElementById('f_subject_text').focus()">
               <div id="subjectChips" style="display:contents;"></div>
@@ -1136,6 +1156,37 @@
   </div>
 </div>
 
+<!-- 기증자 프로필 관리 -->
+<div class="modal-backdrop" id="donorProfileModal">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-head">
+      <span id="dpTitle">기증자 프로필</span>
+      <button class="modal-x" onclick="closeDonorProfile()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="hint" style="margin-bottom:10px;display:block;">기증 자료의 '기증자' 항목을 기준으로 연락처·주소·기증동의 범위 등을 별도로 관리합니다.</div>
+      <div class="brow"><label>기증자명</label><input type="text" id="dp_name" readonly style="background:var(--bg-app);"></div>
+      <div class="brow"><label>연락처</label><input type="text" id="dp_phone" placeholder="010-0000-0000"></div>
+      <div class="brow"><label>주소</label><input type="text" id="dp_address" placeholder="주소를 입력하세요"></div>
+      <div class="brow"><label>기증동의 범위</label><textarea id="dp_consent" placeholder="예: 원본 소유권 이전, 플랫폼 공개·활용 동의 등"></textarea></div>
+      <div class="brow"><label>감사장 발급</label>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <label style="display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--muted);"><input type="checkbox" id="dp_thanks_issued" onchange="toggleDpThanksDate()" style="width:auto;"> 발급함</label>
+          <input type="date" id="dp_thanks_date" style="max-width:160px;">
+        </div>
+      </div>
+      <div class="brow"><label>메모</label><textarea id="dp_memo" placeholder="기타 참고사항"></textarea></div>
+    </div>
+    <div class="modal-foot">
+      <span class="hint" id="dpMeta"></span>
+      <div>
+        <button type="button" class="btn" onclick="closeDonorProfile()">취소</button>
+        <button type="button" class="btn primary" onclick="saveDonorProfile()">저장</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <!-- 지역학 콘텐츠 제작 요청(주문) -->
 <div class="modal-backdrop" id="contentOrderModal">
   <div class="modal" style="max-width:640px;max-height:90vh;">
@@ -1175,6 +1226,28 @@
   </div>
 </div>
 
+<!-- 화도학 용어집(지역 특화 시소러스) -->
+<div class="modal-backdrop" id="thesaurusModal">
+  <div class="modal" style="max-width:640px;max-height:90vh;">
+    <div class="modal-head">
+      <span>화도학 용어집 (지역 특화 시소러스)</span>
+      <button class="modal-x" onclick="closeThesaurus()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="hint" style="display:block;margin-bottom:10px;">사서가 주제어를 입력할 때마다 자동으로 쌓이는 용어 목록입니다. 여기서 직접 추가·수정·삭제할 수도 있고, 자료 등록 화면의 주제 태그 입력 시 초성 검색으로 바로 추천됩니다. (검색 기능 반영은 다음 단계 예정)</div>
+      <div class="brow"><label>새 용어 추가</label><input type="text" id="th_new_term" placeholder="용어를 입력하세요" oninput="renderThesaurusSimilar()"></div>
+      <div id="thSimilar" class="ord-book-results" style="display:none;"></div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:14px;"><button type="button" class="btn primary sm" onclick="addThesaurusTermManual()">+ 용어집에 추가</button></div>
+      <div class="brow"><label>검색</label><input type="text" id="th_search" placeholder="용어 또는 초성으로 검색 (예: ㅎㄷㅇ)" oninput="renderThesaurusList()"></div>
+      <div id="thesaurusList"></div>
+    </div>
+    <div class="modal-foot">
+      <span class="hint" id="thCountHint"></span>
+      <div><button type="button" class="btn primary" onclick="closeThesaurus()">닫기</button></div>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <!-- Supabase 연동: 아래 URL/키를 본인의 Supabase 프로젝트 값으로 교체하세요 -->
@@ -1190,10 +1263,16 @@ let pendingFiles = [];
 let pendingAlpasLinks = [];
 let subjectTags = [];
 let currentAcq = '등록';
-let settings = { templateId:'grid', labels:{item:'아이템',collection:'컬렉션',exhibit:'전시회'}, plan:'general', regCounter:0, receiptNumbers:[], localStudyName:'행복학' };
+/* 데모 전제: 도서관에 이미 등록번호가 수만 건 쌓여 있다고 가정하고, 그 다음 빈 번호부터
+   자동 채번되는 것처럼 보이도록 초기 카운터를 크게 잡아둔다. 실제 연동 시에는 이 초기값을
+   도서관 등록대장의 마지막 채번 값으로 교체하면 된다. */
+const REG_COUNTER_BASE = 48213;
+let settings = { templateId:'grid', labels:{item:'아이템',collection:'컬렉션',exhibit:'전시회'}, plan:'general', regCounter:REG_COUNTER_BASE, receiptNumbers:[], localStudyName:'행복학' };
 let collections = [];
 let customContent = [];
 let contentOrders = [];
+let thesaurusTerms = []; // 화도학 용어집(지역 특화 시소러스): {id, term, chosung, useCount, createdAt}
+let donors = []; // 기증자 프로필: {id, name, phone, address, consentNote, thanksIssued, thanksIssuedDate, memo, createdAt, updatedAt}
 let builderPickedIds = new Set();
 let builderThumb = null;
 let builderBg = null;
@@ -1306,6 +1385,22 @@ function rowToContentOrder(row){
   return { id:row.id, books:row.books||[], items:row.items||[], deliveryDate:row.delivery_date,
     paymentMethod:row.payment_method, status:row.status||'요청됨', createdAt:row.created_at };
 }
+function thesaurusToRow(t){
+  return { id:t.id, term:t.term, chosung:t.chosung||'', use_count:t.useCount||1, created_at:t.createdAt||new Date().toISOString() };
+}
+function rowToThesaurus(row){
+  return { id:row.id, term:row.term, chosung:row.chosung||'', useCount:row.use_count||1, createdAt:row.created_at };
+}
+function donorToRow(d){
+  return { id:d.id, name:d.name, phone:d.phone||'', address:d.address||'', consent_note:d.consentNote||'',
+    thanks_issued:!!d.thanksIssued, thanks_issued_date:d.thanksIssuedDate||null, memo:d.memo||'',
+    created_at:d.createdAt||new Date().toISOString(), updated_at:d.updatedAt||new Date().toISOString() };
+}
+function rowToDonor(row){
+  return { id:row.id, name:row.name, phone:row.phone||'', address:row.address||'', consentNote:row.consent_note||'',
+    thanksIssued:!!row.thanks_issued, thanksIssuedDate:row.thanks_issued_date, memo:row.memo||'',
+    createdAt:row.created_at, updatedAt:row.updated_at };
+}
 function settingsToRow(){
   return { id:1, template_id:settings.templateId, plan:settings.plan,
     reg_counter:settings.regCounter||0, receipt_numbers:settings.receiptNumbers||[],
@@ -1314,7 +1409,7 @@ function settingsToRow(){
 function rowToSettings(row){
   return {
     templateId:row.template_id||'grid', labels:{item:'아이템',collection:'컬렉션',exhibit:'전시회'},
-    plan:row.plan||'general', regCounter:row.reg_counter||0,
+    plan:row.plan||'general', regCounter:row.reg_counter||REG_COUNTER_BASE,
     receiptNumbers:row.receipt_numbers||[], localStudyName:row.local_study_name||'행복학'
   };
 }
@@ -1351,6 +1446,18 @@ async function loadRecords(){
     if(error) throw error;
     contentOrders = (data||[]).map(rowToContentOrder);
   }catch(e){ console.error('콘텐츠 제작 요청 불러오기 실패', e); contentOrders = []; }
+
+  try{
+    const { data, error } = await sb.from('thesaurus_terms').select('*').order('term', {ascending:true});
+    if(error) throw error;
+    thesaurusTerms = (data||[]).map(rowToThesaurus);
+  }catch(e){ console.error('화도학 용어집 불러오기 실패', e); thesaurusTerms = []; }
+
+  try{
+    const { data, error } = await sb.from('donors').select('*').order('created_at', {ascending:false});
+    if(error) throw error;
+    donors = (data||[]).map(rowToDonor);
+  }catch(e){ console.error('기증자 프로필 불러오기 실패', e); donors = []; }
 }
 async function saveRecords(){
   if(!sb) return;
@@ -1383,6 +1490,20 @@ async function saveContentOrders(){
   try{
     await sb.from('content_orders').delete().neq('id','__none__');
     if(contentOrders.length) await sb.from('content_orders').insert(contentOrders.map(contentOrderToRow));
+  }catch(e){ console.error('저장 실패', e); }
+}
+async function saveThesaurus(){
+  if(!sb) return;
+  try{
+    await sb.from('thesaurus_terms').delete().neq('id','__none__');
+    if(thesaurusTerms.length) await sb.from('thesaurus_terms').insert(thesaurusTerms.map(thesaurusToRow));
+  }catch(e){ console.error('저장 실패', e); }
+}
+async function saveDonors(){
+  if(!sb) return;
+  try{
+    await sb.from('donors').delete().neq('id','__none__');
+    if(donors.length) await sb.from('donors').insert(donors.map(donorToRow));
   }catch(e){ console.error('저장 실패', e); }
 }
 
@@ -1433,19 +1554,29 @@ function renderDonors(){
   document.getElementById('donorBody').innerHTML = names.map(name=>{
     const items = byDonor[name].slice().sort((a,b)=>(b.collectDate||'').localeCompare(a.collectDate||''));
     const latest = items[0] && items[0].collectDate ? items[0].collectDate : '날짜 미상';
-    const pending = items.filter(r=>r.status==='접수중').length;
-    const statusHtml = pending
-      ? `<span class="status-pill 접수중">등록대기 ${pending}건</span>`
-      : `<span class="status-pill 등록완료">모두 등록완료</span>`;
+    const receiving = items.filter(r=>r.status==='접수중').length;
+    const reviewing = items.filter(r=>r.status==='검수중').length;
+    const done = items.filter(r=>r.status==='등록완료').length;
+    const statusHtml = `<div style="display:flex;flex-wrap:wrap;gap:4px;">`
+      + (receiving ? `<span class="status-pill 접수중">접수중 ${receiving}</span>` : '')
+      + (reviewing ? `<span class="status-pill 검수중">검수중 ${reviewing}</span>` : '')
+      + (done ? `<span class="status-pill 등록완료">등록완료 ${done}</span>` : '')
+      + `</div>`;
+    const donor = donors.find(d=>d.name===name);
+    const thanksHtml = donor && donor.thanksIssued
+      ? `<span class="hint" style="display:block;margin-top:3px;">감사장 발급완료${donor.thanksIssuedDate ? ' · '+donor.thanksIssuedDate : ''}</span>` : '';
     const detailHtml = items.map(r=>`
       <div class="file-chip"><span>${escapeHtml(r.title)}</span><span class="sz">${escapeHtml(r.type)} · ${r.collectDate||'날짜 미상'} · ${r.status}</span></div>`).join('');
     return `
     <tr>
-      <td><b>${escapeHtml(name)}</b></td>
+      <td><b>${escapeHtml(name)}</b>${thanksHtml}</td>
       <td>${items.length}건</td>
       <td>${latest}</td>
       <td>${statusHtml}</td>
-      <td><button type="button" class="btn sm" onclick="toggleDonorDetail(this)">자료 보기</button></td>
+      <td>
+        <button type="button" class="btn sm" onclick="toggleDonorDetail(this)">자료 보기</button>
+        <button type="button" class="btn sm" onclick="openDonorProfile('${escapeHtml(name).replace(/'/g,"\\'")}')">프로필 관리</button>
+      </td>
     </tr>
     <tr class="donor-detail" style="display:none;">
       <td colspan="5"><div class="file-list">${detailHtml}</div></td>
@@ -1456,6 +1587,51 @@ function renderDonors(){
 function toggleDonorDetail(btn){
   const row = btn.closest('tr').nextElementSibling;
   row.style.display = row.style.display==='none' ? 'table-row' : 'none';
+}
+
+/* 기증자 프로필(연락처/주소/기증동의범위/감사장 발급여부·일자/메모) */
+let editingDonorName = null;
+function openDonorProfile(name){
+  editingDonorName = name;
+  let donor = donors.find(d=>d.name===name);
+  document.getElementById('dpTitle').textContent = name + ' 프로필';
+  document.getElementById('dp_name').value = name;
+  document.getElementById('dp_phone').value = donor ? donor.phone||'' : '';
+  document.getElementById('dp_address').value = donor ? donor.address||'' : '';
+  document.getElementById('dp_consent').value = donor ? donor.consentNote||'' : '';
+  document.getElementById('dp_thanks_issued').checked = !!(donor && donor.thanksIssued);
+  document.getElementById('dp_thanks_date').value = donor && donor.thanksIssuedDate ? donor.thanksIssuedDate : '';
+  document.getElementById('dp_memo').value = donor ? donor.memo||'' : '';
+  toggleDpThanksDate();
+  document.getElementById('dpMeta').textContent = donor ? `최초 등록일: ${(donor.createdAt||'').slice(0,10)}` : '아직 프로필 정보가 없습니다 (저장 시 새로 생성됩니다)';
+  document.getElementById('donorProfileModal').classList.add('on');
+}
+function closeDonorProfile(){
+  document.getElementById('donorProfileModal').classList.remove('on');
+  editingDonorName = null;
+}
+function toggleDpThanksDate(){
+  document.getElementById('dp_thanks_date').disabled = !document.getElementById('dp_thanks_issued').checked;
+}
+async function saveDonorProfile(){
+  if(!editingDonorName) return;
+  let donor = donors.find(d=>d.name===editingDonorName);
+  const now = new Date().toISOString();
+  if(!donor){
+    donor = { id:'donor_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), name:editingDonorName, createdAt:now };
+    donors.push(donor);
+  }
+  donor.phone = document.getElementById('dp_phone').value.trim();
+  donor.address = document.getElementById('dp_address').value.trim();
+  donor.consentNote = document.getElementById('dp_consent').value.trim();
+  donor.thanksIssued = document.getElementById('dp_thanks_issued').checked;
+  donor.thanksIssuedDate = donor.thanksIssued ? (document.getElementById('dp_thanks_date').value || null) : null;
+  donor.memo = document.getElementById('dp_memo').value.trim();
+  donor.updatedAt = now;
+  await saveDonors();
+  closeDonorProfile();
+  renderDonors();
+  showToast('기증자 프로필이 저장되었습니다');
 }
 
 /* 등록/기증 목록화면 */
@@ -1472,6 +1648,7 @@ function openForm(acqType){
     ? '기증받은 지역학 자료를 접수번호 단위로 관리하고, 등록인계 후 플랫폼에 게시할 수 있습니다.'
     : '지역학 자료를 직접 입력하여 등록번호를 부여합니다.';
   document.getElementById('thPersonCol').textContent = acqType==='기증' ? '기증자' : '생산자';
+  document.getElementById('btnInspect').style.display = acqType==='기증' ? 'inline-block' : 'none';
   document.getElementById('btnHandover').style.display = acqType==='기증' ? 'inline-block' : 'none';
   document.getElementById('mtabGift').style.display = acqType==='기증' ? 'block' : 'none';
   resetSearch();
@@ -1569,10 +1746,12 @@ function syncToolbar(){
   const n = selectedIds.size;
   document.getElementById('btnEdit').disabled = n!==1;
   document.getElementById('btnDelete').disabled = n===0;
+  const inspectBtn = document.getElementById('btnInspect');
   const handoverBtn = document.getElementById('btnHandover');
   if(currentAcq==='기증'){
     const sel = records.filter(r=>selectedIds.has(r.id));
-    handoverBtn.disabled = !(n>0 && sel.every(r=>r.status==='접수중'));
+    inspectBtn.disabled = !(n>0 && sel.every(r=>r.status==='접수중'));
+    handoverBtn.disabled = !(n>0 && sel.every(r=>r.status==='검수중'));
   }
 }
 async function deleteSelected(){
@@ -1584,8 +1763,16 @@ async function deleteSelected(){
   renderGrid();
   showToast('삭제되었습니다');
 }
+async function startInspection(){
+  if(!confirm('선택한 자료의 검수를 시작하시겠습니까? (접수중 → 검수중)')) return;
+  records.filter(r=>selectedIds.has(r.id)).forEach(r=>{ r.status='검수중'; });
+  await saveRecords();
+  selectedIds.clear();
+  renderGrid();
+  showToast('검수가 시작되었습니다');
+}
 async function handoverSelected(){
-  if(!confirm('등록 인계를 진행하시겠습니까?')) return;
+  if(!confirm('등록 인계를 진행하시겠습니까? (검수중 → 등록완료)')) return;
   records.filter(r=>selectedIds.has(r.id)).forEach(r=>{
     r.status='등록완료';
     r.regNo = nextRegNo();
@@ -1596,9 +1783,9 @@ async function handoverSelected(){
   showToast('등록 인계가 완료되었습니다');
 }
 function nextRegNo(){
-  settings.regCounter = (settings.regCounter||0) + 1;
+  settings.regCounter = (settings.regCounter||REG_COUNTER_BASE) + 1;
   const y = new Date().getFullYear();
-  return `등록-${y}-${String(settings.regCounter).padStart(4,'0')}`;
+  return `등록-${y}-${String(settings.regCounter).padStart(6,'0')}`;
 }
 function exportExcel(){
   const list = filteredList();
@@ -1763,10 +1950,89 @@ function getChosung(str){
 }
 function allSubjectPool(){
   const pool = new Set();
+  thesaurusTerms.forEach(t=>pool.add(t.term));
   records.forEach(r=>{
     (r.subject||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(s=>pool.add(s));
   });
   return pool;
+}
+/* 화도학 용어집(지역 특화 시소러스): 사서가 주제어를 입력할 때마다 자동으로 쌓인다.
+   이미 있는 용어면 사용 횟수만 올리고, 새 용어면 새로 등록한다. */
+async function addThesaurusTerm(term){
+  const t = term.trim();
+  if(!t) return;
+  const existing = thesaurusTerms.find(x=>x.term===t);
+  if(existing){ existing.useCount = (existing.useCount||1) + 1; }
+  else { thesaurusTerms.push({ id:'th_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), term:t, chosung:getChosung(t), useCount:1, createdAt:new Date().toISOString() }); }
+  await saveThesaurus();
+}
+function openThesaurus(){
+  document.getElementById('th_new_term').value='';
+  document.getElementById('th_search').value='';
+  document.getElementById('thSimilar').style.display='none';
+  document.getElementById('thSimilar').innerHTML='';
+  renderThesaurusList();
+  document.getElementById('thesaurusModal').classList.add('on');
+}
+function closeThesaurus(){ document.getElementById('thesaurusModal').classList.remove('on'); }
+function findSimilarTerms(q){
+  if(!q) return [];
+  const qLower = q.toLowerCase();
+  const qCho = getChosung(q);
+  return thesaurusTerms.filter(t=>{
+    if(t.term.toLowerCase()===qLower) return false;
+    return t.term.toLowerCase().includes(qLower) || t.chosung.includes(qCho) || qLower.includes(t.term.toLowerCase());
+  }).slice(0,6);
+}
+function renderThesaurusSimilar(){
+  const q = document.getElementById('th_new_term').value.trim();
+  const box = document.getElementById('thSimilar');
+  if(!q){ box.style.display='none'; box.innerHTML=''; return; }
+  const similar = findSimilarTerms(q);
+  if(!similar.length){ box.style.display='none'; box.innerHTML=''; return; }
+  box.style.display='block';
+  box.innerHTML = `<div style="padding:6px 10px;font-size:11px;color:var(--muted);">비슷한 용어가 이미 있어요 — 클릭하면 그 용어를 그대로 사용합니다</div>` +
+    similar.map(t=>`<div class="ord-book-result-item"><div><b>${escapeHtml(t.term)}</b><span class="hint" style="display:block;margin:0;">사용 ${t.useCount}회</span></div><button type="button" class="btn sm" onclick="document.getElementById('th_new_term').value='${t.term.replace(/'/g,"\\'")}'; renderThesaurusSimilar();">이 용어 쓰기</button></div>`).join('');
+}
+async function addThesaurusTermManual(){
+  const term = document.getElementById('th_new_term').value.trim();
+  if(!term){ showToast('용어를 입력해 주세요'); return; }
+  await addThesaurusTerm(term);
+  showToast('화도학 용어집에 등록되었습니다: ' + term);
+  document.getElementById('th_new_term').value='';
+  document.getElementById('thSimilar').style.display='none';
+  renderThesaurusList();
+}
+function renderThesaurusList(){
+  const q = document.getElementById('th_search').value.trim().toLowerCase();
+  const qCho = getChosung(q);
+  let list = thesaurusTerms.slice();
+  if(q){ list = list.filter(t=>t.term.toLowerCase().includes(q) || t.chosung.includes(qCho)); }
+  list.sort((a,b)=>a.term.localeCompare(b.term,'ko'));
+  const groups = {};
+  list.forEach(t=>{
+    const g = t.chosung.charAt(0) || '#';
+    (groups[g] = groups[g] || []).push(t);
+  });
+  const groupKeys = Object.keys(groups).sort((a,b)=>a.localeCompare(b,'ko'));
+  document.getElementById('thesaurusList').innerHTML = groupKeys.length ? groupKeys.map(g=>`
+    <div class="th-group">
+      <div class="th-group-head">${escapeHtml(g)}</div>
+      <div class="th-group-items">
+        ${groups[g].map(t=>`
+          <span class="ord-book-chip" style="background:var(--amber-tint);color:var(--amber);">
+            ${escapeHtml(t.term)} <span style="opacity:.7;">(${t.useCount})</span>
+            <span class="x" onclick="deleteThesaurusTerm('${t.id}')">✕</span>
+          </span>`).join('')}
+      </div>
+    </div>`).join('') : `<span class="hint">등록된 용어가 없습니다</span>`;
+  document.getElementById('thCountHint').textContent = `총 ${thesaurusTerms.length}개 용어 · 가나다(초성)순 정렬`;
+}
+async function deleteThesaurusTerm(id){
+  if(!confirm('이 용어를 화도학 용어집에서 삭제할까요?')) return;
+  thesaurusTerms = thesaurusTerms.filter(t=>t.id!==id);
+  await saveThesaurus();
+  renderThesaurusList();
 }
 function renderSubjectTags(keepFocus){
   document.getElementById('subjectChips').innerHTML = subjectTags.map((t,i)=>`
@@ -1782,6 +2048,7 @@ function commitSubjectInput(raw){
   raw.split(',').map(s=>s.trim()).filter(Boolean).forEach(p=>{
     if(subjectTags.length >= SUBJECT_MAX){ showToast(`주제 태그는 최대 ${SUBJECT_MAX}개까지 등록할 수 있습니다`); return; }
     if(!subjectTags.includes(p)) subjectTags.push(p);
+    addThesaurusTerm(p);
   });
 }
 function onSubjectKeydown(e){
@@ -1827,6 +2094,7 @@ function onSubjectInput(){
 function pickSubjectSuggest(t){
   if(subjectTags.length >= SUBJECT_MAX){ showToast(`주제 태그는 최대 ${SUBJECT_MAX}개까지 등록할 수 있습니다`); return; }
   if(!subjectTags.includes(t)) subjectTags.push(t);
+  addThesaurusTerm(t);
   document.getElementById('f_subject_text').value='';
   renderSubjectTags(true);
   hideSubjectSuggest();
@@ -2535,23 +2803,48 @@ function renderStore(){
   }).join('') + renderStoreOrphanSection();
 }
 /* 접수된 콘텐츠 제작 요청(주문) 내역 목록 */
+const ORDER_STATUS_STAGES = ['요청됨','검토중','제작중','납품완료','등록완료'];
+function buildOrderStepperHtml(status){
+  let curIdx = ORDER_STATUS_STAGES.indexOf(status);
+  if(curIdx<0) curIdx = 0;
+  return `<div class="ord-stepper">${ORDER_STATUS_STAGES.map((stage,idx)=>{
+    const cls = idx<curIdx ? 'done' : (idx===curIdx ? 'current' : '');
+    return `<div class="ord-step ${cls}"><span class="dot"></span><span class="lbl">${escapeHtml(stage)}</span></div>`;
+  }).join('')}</div>`;
+}
+async function advanceOrderStatus(id){
+  const o = contentOrders.find(x=>x.id===id);
+  if(!o) return;
+  const idx = ORDER_STATUS_STAGES.indexOf(o.status);
+  if(idx<0 || idx>=ORDER_STATUS_STAGES.length-1) return;
+  o.status = ORDER_STATUS_STAGES[idx+1];
+  await saveContentOrders();
+  renderStore();
+  showToast(`상태가 '${o.status}'(으)로 변경되었습니다`);
+}
 function renderOrderHistory(){
   if(!contentOrders.length) return '';
   return `<div class="store-section">
     <h4>제작 요청 내역</h4>
     <div class="store-registered">
       <table class="store-reg-table">
-        <thead><tr><th>참고 도서</th><th>제작 분류·수량</th><th>납품 희망일</th><th>결제 방법</th><th>상태</th><th></th></tr></thead>
+        <thead><tr><th>참고 도서</th><th>제작 분류·수량</th><th>납품 희망일</th><th>결제 방법</th><th>진행 상태</th><th></th></tr></thead>
         <tbody>
-          ${contentOrders.map(o=>`
+          ${contentOrders.map(o=>{
+            const idx = ORDER_STATUS_STAGES.indexOf(o.status);
+            const isLast = idx>=ORDER_STATUS_STAGES.length-1;
+            return `
             <tr>
               <td>${o.books.map(b=>escapeHtml(b.title)).join(', ')}</td>
               <td>${o.items.map(it=>`${escapeHtml(it.category)} ${it.qty}종`).join(' / ')}</td>
               <td>${escapeHtml(o.deliveryDate||'')}</td>
               <td>${escapeHtml(o.paymentMethod||'')}</td>
-              <td><span class="status-pill 접수중">${escapeHtml(o.status)}</span></td>
-              <td><button type="button" class="btn sm del" onclick="cancelContentOrder('${o.id}')">취소</button></td>
-            </tr>`).join('')}
+              <td>${buildOrderStepperHtml(o.status)}</td>
+              <td>
+                ${!isLast ? `<button type="button" class="btn sm" onclick="advanceOrderStatus('${o.id}')" title="데모용: 다음 단계로 상태를 진행시킵니다">다음 단계</button>` : ''}
+                <button type="button" class="btn sm del" onclick="cancelContentOrder('${o.id}')">취소</button>
+              </td>
+            </tr>`;}).join('')}
         </tbody>
       </table>
     </div>
