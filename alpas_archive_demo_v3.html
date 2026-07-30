@@ -2397,7 +2397,8 @@ function renderStoreOrphanSection(){
   const orphans = customContent.filter(c=>c.premium && !knownCats.includes(c.category));
   if(!orphans.length) return '';
   return `<div class="store-section">
-    <div class="store-section-head"><h4>기타 등록 콘텐츠</h4><button type="button" class="btn sm" onclick="requestUpgrade('${knownCats[0]}')">+ 추가 콘텐츠 요청하기</button></div>
+    <h4>분류 미지정 콘텐츠</h4>
+    <span class="hint" style="display:block;margin:-4px 0 8px;">이전에 카테고리를 자유 입력으로 등록한 콘텐츠입니다. 아래에서 정식 분류를 지정하면 해당 분류 목록으로 옮겨집니다.</span>
     <div class="store-registered">
       <table class="store-reg-table">
         <thead><tr><th>콘텐츠명</th><th>카테고리</th><th>작성자</th><th>등록일</th><th>이미지</th><th></th></tr></thead>
@@ -2405,7 +2406,12 @@ function renderStoreOrphanSection(){
           ${orphans.map(c=>`
             <tr>
               <td>${escapeHtml(c.title)}</td>
-              <td>${escapeHtml(c.category)}</td>
+              <td>
+                <select onchange="if(this.value) reassignPremiumCategory('${c.id}', this.value)" style="width:auto;font-size:11.5px;padding:3px 6px;">
+                  <option value="">${escapeHtml(c.category)} (분류 지정 안 됨)</option>
+                  ${knownCats.map(k=>`<option value="${escapeHtml(k)}">→ ${escapeHtml(k)}</option>`).join('')}
+                </select>
+              </td>
               <td>(주)이씨오</td>
               <td>${(c.createdAt||'').slice(0,10)}</td>
               <td>${(c.images&&c.images.length)||(c.thumb?1:0)}장</td>
@@ -2483,6 +2489,17 @@ function previewPremiumItem(id){
   document.getElementById('premiumPreviewModal').classList.add('on');
 }
 function closePremiumPreview(){ document.getElementById('premiumPreviewModal').classList.remove('on'); }
+async function reassignPremiumCategory(id, newCat){
+  const c = customContent.find(x=>x.id===id);
+  if(!c) return;
+  const oldCat = c.category;
+  c.category = newCat;
+  await saveCustomContent();
+  showToast(`'${c.title}'의 분류를 '${oldCat}' → '${newCat}'(으)로 지정했습니다`);
+  renderStore();
+  renderCustom();
+  renderCurate();
+}
 
 function showToast(msg){
   const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
