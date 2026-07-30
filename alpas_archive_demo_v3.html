@@ -409,6 +409,23 @@
   .pi-thumb{position:relative;width:56px;height:56px;border-radius:6px;overflow:hidden;border:1px solid var(--line);}
   .pi-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
   .pi-thumb-del{position:absolute;top:1px;right:1px;width:16px;height:16px;border-radius:50%;background:rgba(0,0,0,.6);color:#fff;font-size:10px;display:flex;align-items:center;justify-content:center;cursor:pointer;}
+  #platformPreviewInner.pfv-fullscreen,
+  #platformPreviewInner:fullscreen{
+    width:100vw !important;
+    max-width:100vw !important;
+    height:100vh !important;
+    max-height:100vh !important;
+    border-radius:0;
+  }
+  #platformPreviewInner.pfv-fullscreen .pfv-site-content,
+  #platformPreviewInner:fullscreen .pfv-site-content{
+    max-height:none;
+    flex:1;
+  }
+  #platformPreviewInner.pfv-fullscreen .modal-body,
+  #platformPreviewInner:fullscreen .modal-body{
+    flex:1;overflow:auto;
+  }
   .store-section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
   .store-section-head h4{margin:0;}
   .store-registered{margin-bottom:14px;}
@@ -1030,10 +1047,13 @@
 
 <!-- 현재 플랫폼 전체 미리보기 팝업 (실제 도서관 사이트 GUI를 흉내낸 프레임) -->
 <div class="modal-backdrop" id="platformPreviewModal">
-  <div class="modal" style="max-width:1100px;max-height:92vh;">
+  <div class="modal" id="platformPreviewInner" style="max-width:1100px;max-height:92vh;">
     <div class="modal-head">
       <span>현재 플랫폼 미리보기</span>
-      <button class="modal-x" onclick="closePlatformPreview()">✕</button>
+      <div style="display:flex;align-items:center;gap:6px;">
+        <button type="button" class="btn sm" id="pfvFullscreenBtn" onclick="togglePlatformFullscreen()">⛶ 전체화면으로 보기</button>
+        <button class="modal-x" onclick="closePlatformPreview()">✕</button>
+      </div>
     </div>
     <div class="modal-body" style="padding:0;">
       <div class="pfv-site">
@@ -1075,7 +1095,7 @@
     </div>
     <div class="modal-body">
       <div class="hint" style="margin-bottom:10px;display:block;">실제 서비스에서는 이씨오 콘텐츠사업부가 외부에서 등록하지만, 데모에서는 파일을 직접 불러와 바로 등록해볼 수 있습니다.</div>
-      <div class="brow"><label>카테고리</label><input type="text" id="pi_cat" placeholder="예: 카드콘텐츠"></div>
+      <div class="brow"><label>카테고리</label><select id="pi_cat"></select></div>
       <div class="brow"><label>콘텐츠명</label><input type="text" id="pi_title" placeholder="콘텐츠명을 입력하세요"></div>
       <div class="brow"><label>파일 불러오기</label><div><div class="cc-thumb-drop" id="piThumbDrop" onclick="document.getElementById('pi_file').click()">클릭하여 이미지 여러 장 선택</div><input type="file" id="pi_file" accept="image/*" multiple style="display:none" onchange="handlePiThumb(this.files); this.value='';"><span class="hint" style="display:block;margin-top:4px;">여러 장을 등록하면 '카드 스와이프형' 템플릿에서 ‹ › 버튼으로 넘겨볼 수 있습니다</span></div></div>
       <div class="brow"><label>세부내용</label><textarea id="pi_desc" placeholder="콘텐츠 상세 설명을 입력하세요"></textarea></div>
@@ -2186,7 +2206,36 @@ function openPlatformPreview(){
   }).join('') : `<div class="empty" style="padding:40px 10px;"><b>구성된 단이 없습니다</b>'+ 새 단 추가'로 플랫폼의 첫 단을 만들어 보세요.</div>`;
   document.getElementById('platformPreviewModal').classList.add('on');
 }
-function closePlatformPreview(){ document.getElementById('platformPreviewModal').classList.remove('on'); }
+function closePlatformPreview(){
+  const el = document.getElementById('platformPreviewInner');
+  if(document.fullscreenElement){ try{ document.exitFullscreen(); }catch(e){} }
+  if(el) el.classList.remove('pfv-fullscreen');
+  document.getElementById('platformPreviewModal').classList.remove('on');
+}
+function togglePlatformFullscreen(){
+  const el = document.getElementById('platformPreviewInner');
+  const btn = document.getElementById('pfvFullscreenBtn');
+  if(!el || !btn) return;
+  const active = document.fullscreenElement === el || el.classList.contains('pfv-fullscreen');
+  if(!active){
+    if(el.requestFullscreen){
+      el.requestFullscreen().catch(()=>{ el.classList.add('pfv-fullscreen'); btn.textContent = '⤢ 전체화면 종료'; });
+    } else {
+      el.classList.add('pfv-fullscreen');
+      btn.textContent = '⤢ 전체화면 종료';
+    }
+  } else {
+    if(document.fullscreenElement){ try{ document.exitFullscreen(); }catch(e){} }
+    el.classList.remove('pfv-fullscreen');
+    btn.textContent = '⛶ 전체화면으로 보기';
+  }
+}
+document.addEventListener('fullscreenchange', ()=>{
+  const el = document.getElementById('platformPreviewInner');
+  const btn = document.getElementById('pfvFullscreenBtn');
+  if(!el || !btn) return;
+  btn.textContent = (document.fullscreenElement === el) ? '⤢ 전체화면 종료' : '⛶ 전체화면으로 보기';
+});
 
 /* ── 기타 (지역학 콘텐츠 탭 내 도서관 직접 구성 카테고리) ── */
 function renderCustom(){
@@ -2339,7 +2388,36 @@ function renderStore(){
     }
 
     return `<div class="store-section">${headHtml}${registeredHtml}${catalogHtml}</div>`;
-  }).join('');
+  }).join('') + renderStoreOrphanSection();
+}
+/* 카테고리 목록(STORE_CATALOG)과 정확히 일치하지 않는 카테고리로 등록된 프리미엄 콘텐츠도
+   누락되지 않도록 별도 구역에 모아서 보여준다 (예: 이전 버전에서 자유 입력으로 등록된 항목) */
+function renderStoreOrphanSection(){
+  const knownCats = Object.keys(STORE_CATALOG);
+  const orphans = customContent.filter(c=>c.premium && !knownCats.includes(c.category));
+  if(!orphans.length) return '';
+  return `<div class="store-section">
+    <div class="store-section-head"><h4>기타 등록 콘텐츠</h4><button type="button" class="btn sm" onclick="requestUpgrade('${knownCats[0]}')">+ 추가 콘텐츠 요청하기</button></div>
+    <div class="store-registered">
+      <table class="store-reg-table">
+        <thead><tr><th>콘텐츠명</th><th>카테고리</th><th>작성자</th><th>등록일</th><th>이미지</th><th></th></tr></thead>
+        <tbody>
+          ${orphans.map(c=>`
+            <tr>
+              <td>${escapeHtml(c.title)}</td>
+              <td>${escapeHtml(c.category)}</td>
+              <td>(주)이씨오</td>
+              <td>${(c.createdAt||'').slice(0,10)}</td>
+              <td>${(c.images&&c.images.length)||(c.thumb?1:0)}장</td>
+              <td style="white-space:nowrap;">
+                <button type="button" class="btn sm" onclick="previewPremiumItem('${c.id}')">미리보기</button>
+                <button type="button" class="btn sm del" onclick="deleteCcItem('${c.id}')">삭제</button>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+  </div>`;
 }
 function requestPurchase(cat, name){ openPremiumImport(cat, name); }
 function requestUpgrade(cat){ openPremiumImport(cat||'', ''); }
@@ -2347,7 +2425,10 @@ function requestUpgrade(cat){ openPremiumImport(cat||'', ''); }
 /* ── 프리미엄 콘텐츠 등록 모달 (데모: 외부 파일 불러와 바로 등록, 이미지 여러 장 지원) ── */
 let piPickedImages = [];
 function openPremiumImport(category, title){
-  document.getElementById('pi_cat').value = category || '';
+  const catSel = document.getElementById('pi_cat');
+  const catKeys = Object.keys(STORE_CATALOG);
+  catSel.innerHTML = catKeys.map(k=>`<option value="${escapeHtml(k)}">${escapeHtml(k)}</option>`).join('');
+  catSel.value = catKeys.includes(category) ? category : catKeys[0];
   document.getElementById('pi_title').value = title || '';
   document.getElementById('pi_desc').value = '';
   piPickedImages = [];
