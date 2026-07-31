@@ -300,6 +300,7 @@
   .tpv-canvas{position:relative;width:100%;aspect-ratio:16/10;background:#F1F3F6;border-radius:6px;overflow:hidden;border:1px solid var(--line);}
   .tpv-canvas .slot{position:absolute;background:#E3E7EC;border-radius:3px;overflow:hidden;display:flex;align-items:center;justify-content:center;color:var(--faint);font-size:12px;font-weight:700;}
   .tpv-canvas .slot img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;}
+  .tpv-canvas .slot video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#000;}
   .tpv-canvas .slot .cap{position:absolute;left:0;right:0;bottom:0;z-index:2;background:linear-gradient(transparent,rgba(0,0,0,.62));color:#fff;font-size:10px;padding:9px 6px 4px;text-align:left;}
   .tpv-side{width:250px;flex-shrink:0;border-left:1px solid var(--line);display:flex;flex-direction:column;}
   .tpv-side .hint{margin:14px 14px 6px;}
@@ -367,6 +368,7 @@
   .cap-card{border:1px solid var(--line);border-radius:6px;overflow:hidden;background:#fff;}
   .cap-card .cap-img{aspect-ratio:4/3;background:#E3E7EC;display:flex;align-items:center;justify-content:center;color:var(--faint);font-weight:700;overflow:hidden;}
   .cap-card .cap-img img{width:100%;height:100%;object-fit:cover;}
+  .cap-card .cap-img video{width:100%;height:100%;object-fit:cover;background:#000;}
   .cap-card .cap-below{padding:8px 10px;}
   .cap-card .cap-below b{display:block;font-size:12.5px;margin-bottom:2px;}
   .cap-card .cap-below p{font-size:11px;color:var(--muted);margin:0;line-height:1.4;}
@@ -397,6 +399,7 @@
   .car-track{display:flex;height:100%;transition:transform .35s ease;}
   .car-slide{flex:0 0 100%;position:relative;height:100%;background:#000;display:flex;align-items:center;justify-content:center;}
   .car-slide img{width:100%;height:100%;object-fit:cover;}
+  .car-slide video{width:100%;height:100%;object-fit:cover;background:#000;}
   .car-noimg{color:#fff;font-size:13px;padding:0 20px;text-align:center;}
   .car-cap{position:absolute;left:0;right:0;bottom:0;padding:10px 14px;background:linear-gradient(transparent,rgba(0,0,0,.7));color:#fff;}
   .car-cap b{font-size:13px;display:block;}
@@ -418,15 +421,29 @@
     height:100vh !important;
     max-height:100vh !important;
     border-radius:0;
+    position:relative;
   }
   #platformPreviewInner.pfv-fullscreen .pfv-site-content,
   #platformPreviewInner:fullscreen .pfv-site-content{
     max-height:none;
     flex:1;
   }
+  /* 전체화면에서는 우리 팝업의 상단바·하단바를 감추고, 플랫폼 자체 GUI(상단 로고/검색/내비)가
+     화면 맨 위부터 꽉 차게 보이도록 한다. 종료 버튼만 우측 상단에 떠 있는 형태로 남긴다. */
+  #platformPreviewInner.pfv-fullscreen .modal-head,
+  #platformPreviewInner:fullscreen .modal-head,
+  #platformPreviewInner.pfv-fullscreen .modal-foot,
+  #platformPreviewInner:fullscreen .modal-foot{
+    display:none;
+  }
+  #platformPreviewInner.pfv-fullscreen #pfvFullscreenExitBtn,
+  #platformPreviewInner:fullscreen #pfvFullscreenExitBtn{
+    display:block;position:absolute;top:14px;right:16px;z-index:5;
+    background:rgba(255,255,255,.95);box-shadow:0 2px 10px rgba(0,0,0,.18);
+  }
   #platformPreviewInner.pfv-fullscreen .modal-body,
   #platformPreviewInner:fullscreen .modal-body{
-    flex:1;overflow:auto;
+    height:100%;overflow:auto;
     display:flex;align-items:center;justify-content:center;
   }
   .store-section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
@@ -1122,6 +1139,7 @@
         <button class="modal-x" onclick="closePlatformPreview()">✕</button>
       </div>
     </div>
+    <button type="button" class="btn sm" id="pfvFullscreenExitBtn" onclick="togglePlatformFullscreen()" style="display:none;">⤢ 전체화면 종료</button>
     <div class="modal-body" style="padding:0;">
       <div class="pfv-site">
         <div class="pfv-site-topbar">
@@ -2675,7 +2693,8 @@ function resolveCurateItem(id){
   const r = records.find(x=>x.id===id);
   if(!r) return null;
   const imgFiles = (r.files||[]).filter(f=>f.type && f.type.startsWith('image/'));
-  return {title:r.title, desc:r.desc||'', img: imgFiles[0] ? imgFiles[0].data : null, images: imgFiles.map(f=>f.data)};
+  const vidFiles = (r.files||[]).filter(f=>f.type && f.type.startsWith('video/'));
+  return {title:r.title, desc:r.desc||'', img: imgFiles[0] ? imgFiles[0].data : null, images: imgFiles.map(f=>f.data), video: vidFiles[0] ? vidFiles[0].data : null};
 }
 /* ── 카드 스와이프형(캐러셀) ── */
 function buildCarouselSlides(ids){
@@ -2684,7 +2703,7 @@ function buildCarouselSlides(ids){
     const it = resolveCurateItem(id);
     if(!it) return;
     const imgs = (it.images && it.images.length) ? it.images : (it.img ? [it.img] : []);
-    if(imgs.length===0){ slides.push({img:null, title:it.title, desc:it.desc}); return; }
+    if(imgs.length===0){ slides.push({img:null, video:it.video||null, title:it.title, desc:it.desc}); return; }
     imgs.forEach((img,i)=>{
       slides.push({ img, title: imgs.length>1 ? `${it.title} (${i+1}/${imgs.length})` : it.title, desc: it.desc });
     });
@@ -2695,7 +2714,7 @@ function renderCarouselHtml(slides){
   if(!slides.length) return `<div class="carousel-empty hint">배치할 카드를 선택하세요</div>`;
   const slideHtml = slides.map(s=>`
     <div class="car-slide">
-      ${s.img ? `<img src="${s.img}">` : `<div class="car-noimg">${escapeHtml(s.title||'이미지 없음')}</div>`}
+      ${s.img ? `<img src="${s.img}">` : (s.video ? `<video src="${s.video}" controls preload="metadata"></video>` : `<div class="car-noimg">${escapeHtml(s.title||'이미지 없음')}</div>`)}
       <div class="car-cap"><b>${escapeHtml(s.title||'')}</b>${s.desc?`<p>${escapeHtml(s.desc)}</p>`:''}</div>
     </div>`).join('');
   const dotsHtml = slides.map((_,i)=>`<span class="car-dot ${i===0?'on':''}"></span>`).join('');
@@ -2734,6 +2753,7 @@ function renderCurateSectionBody(c, tpl){
       const it = resolveCurateItem(ids[si]);
       let inner = String(si+1);
       if(it && it.img){ inner = `<img src="${it.img}"><div class="cap">${escapeHtml(it.title)}</div>`; }
+      else if(it && it.video){ inner = `<video src="${it.video}" controls preload="metadata"></video><div class="cap">${escapeHtml(it.title)}</div>`; }
       else if(it){ inner = `<div class="cap" style="position:static;background:none;color:var(--muted);">${escapeHtml(it.title)}</div>`; }
       return `<div class="slot" style="left:${x}%;top:${y}%;width:${w}%;height:${h}%;">${inner}</div>`;
     }).join('');
@@ -2741,7 +2761,7 @@ function renderCurateSectionBody(c, tpl){
   }
   const cardsHtml = tpl.shapes.map((s,si)=>{
     const it = resolveCurateItem(ids[si]);
-    const imgHtml = it && it.img ? `<img src="${it.img}">` : String(si+1);
+    const imgHtml = it && it.img ? `<img src="${it.img}">` : (it && it.video ? `<video src="${it.video}" controls preload="metadata"></video>` : String(si+1));
     if(!it) return `<div class="cap-card"><div class="cap-img">${imgHtml}</div></div>`;
     const descHtml = (mode==='below-full' && it.desc) ? `<p>${escapeHtml(it.desc)}</p>` : '';
     return `<div class="cap-card"><div class="cap-img">${imgHtml}</div><div class="cap-below"><b>${escapeHtml(it.title)}</b>${descHtml}</div></div>`;
@@ -2794,6 +2814,14 @@ function closePlatformPreview(){
   document.getElementById('platformPreviewModal').classList.remove('on');
 }
 let pfvNaturalWidth = 1060;
+function pfvScheduleScale(){
+  // rAF 한 번만으로는 전체화면 전환 애니메이션 도중 레이아웃이 아직 안정되지 않은 경우가 있어
+  // 두 프레임 뒤 + 짧은 지연을 한 번 더 두어 안정된 크기에서 확실히 재계산한다.
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(applyPfvFullscreenScale);
+    setTimeout(applyPfvFullscreenScale, 120);
+  });
+}
 function togglePlatformFullscreen(){
   const el = document.getElementById('platformPreviewInner');
   const btn = document.getElementById('pfvFullscreenBtn');
@@ -2805,10 +2833,14 @@ function togglePlatformFullscreen(){
     const enterFallback = ()=>{
       el.classList.add('pfv-fullscreen');
       btn.textContent = '⤢ 전체화면 종료';
-      requestAnimationFrame(applyPfvFullscreenScale);
+      pfvScheduleScale();
     };
     if(el.requestFullscreen){
-      el.requestFullscreen().then(()=>{ btn.textContent = '⤢ 전체화면 종료'; requestAnimationFrame(applyPfvFullscreenScale); }).catch(enterFallback);
+      el.requestFullscreen().then(()=>{
+        el.classList.add('pfv-fullscreen');
+        btn.textContent = '⤢ 전체화면 종료';
+        pfvScheduleScale();
+      }).catch(enterFallback);
     } else {
       enterFallback();
     }
@@ -2832,12 +2864,18 @@ function applyPfvFullscreenScale(){
   if(!el || !site) return;
   const active = document.fullscreenElement === el || el.classList.contains('pfv-fullscreen');
   if(!active) return;
+  // 모달 상단바·하단바는 전체화면에서 숨겨져 있으므로, el 자신의 실제 렌더 박스(=거의 뷰포트 전체)를
+  // 기준으로 맞춘다. window.innerWidth/innerHeight보다 el의 실측값이 더 정확하다.
+  const box = el.getBoundingClientRect();
+  const availW = box.width || window.innerWidth;
+  const availH = box.height || window.innerHeight;
   site.style.width = pfvNaturalWidth + 'px';
   site.style.transform = 'none';
   site.style.transformOrigin = 'center center';
   const naturalHeight = site.scrollHeight;
-  const scaleW = (window.innerWidth * PFV_FIT_MARGIN) / pfvNaturalWidth;
-  const scaleH = (window.innerHeight * PFV_FIT_MARGIN) / naturalHeight;
+  if(!naturalHeight){ return; } // 아직 레이아웃이 안정되지 않았으면(0) 다음 예약된 재계산을 기다린다
+  const scaleW = (availW * PFV_FIT_MARGIN) / pfvNaturalWidth;
+  const scaleH = (availH * PFV_FIT_MARGIN) / naturalHeight;
   const scale = Math.min(scaleW, scaleH);
   site.style.transform = `scale(${scale})`;
 }
@@ -2856,8 +2894,9 @@ document.addEventListener('fullscreenchange', ()=>{
   const btn = document.getElementById('pfvFullscreenBtn');
   if(!el || !btn) return;
   if(document.fullscreenElement === el){
+    el.classList.add('pfv-fullscreen');
     btn.textContent = '⤢ 전체화면 종료';
-    requestAnimationFrame(applyPfvFullscreenScale);
+    pfvScheduleScale();
   } else {
     btn.textContent = '⛶ 전체화면으로 보기';
     el.classList.remove('pfv-fullscreen');
