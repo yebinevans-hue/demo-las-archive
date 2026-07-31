@@ -832,7 +832,10 @@
           <label>수집 URL</label>
           <div class="field"><input type="text" id="f_url" placeholder="예: 유튜브 영상 주소, 신문기사 링크 등 디지털 원문 URL"></div>
           <label>지역 태그<span class="dc">Coverage</span></label>
-          <div class="field"><input type="text" id="f_coverage" placeholder="예: 남양주시 화도읍 (쉼표 구분)"></div>
+          <div class="field" style="display:block;">
+            <input type="text" id="f_coverage" placeholder="예: 남양주시 화도읍 (쉼표 구분)">
+            <div class="hint" style="margin-top:4px;">저장 시 화도학 용어집에도 자동으로 함께 쌓입니다</div>
+          </div>
           <label>주제 태그<span class="dc">Subject</span></label>
           <div class="field" style="position:relative;display:block;">
             <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
@@ -1951,6 +1954,8 @@ async function submitForm(){
   }
   const pendingSubjectText = document.getElementById('f_subject_text').value;
   if(pendingSubjectText.trim()){ commitSubjectInput(pendingSubjectText); document.getElementById('f_subject_text').value=''; renderSubjectTags(); }
+  const coverageTerms = document.getElementById('f_coverage').value.split(',').map(s=>s.trim()).filter(Boolean);
+  await Promise.all(coverageTerms.map(t=>addThesaurusTerm(t)));
   const base = {
     title, type,
     creator: document.getElementById('f_creator').value.trim(),
@@ -2020,6 +2025,7 @@ function allSubjectPool(){
   thesaurusTerms.forEach(t=>pool.add(t.term));
   records.forEach(r=>{
     (r.subject||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(s=>pool.add(s));
+    (r.coverage||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(s=>pool.add(s));
   });
   return pool;
 }
