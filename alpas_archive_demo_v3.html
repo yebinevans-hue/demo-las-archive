@@ -443,8 +443,11 @@
   }
   #platformPreviewInner.pfv-fullscreen .modal-body,
   #platformPreviewInner:fullscreen .modal-body{
-    height:100%;overflow:auto;
-    display:flex;align-items:center;justify-content:center;
+    height:100%;overflow:hidden;position:relative;
+  }
+  #platformPreviewInner.pfv-fullscreen .pfv-site,
+  #platformPreviewInner:fullscreen .pfv-site{
+    position:absolute;top:0;left:0;
   }
   .store-section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
   .store-section-head h4{margin:0;}
@@ -2810,36 +2813,51 @@ function closePlatformPreview(){
   const el = document.getElementById('platformPreviewInner');
   if(document.fullscreenElement){ try{ document.exitFullscreen(); }catch(e){} }
   if(el) el.classList.remove('pfv-fullscreen');
+  pfvStopWatching();
   resetPfvScale();
   document.getElementById('platformPreviewModal').classList.remove('on');
 }
 let pfvNaturalWidth = 1060;
-function pfvScheduleScale(){
-  // rAF 한 번만으로는 전체화면 전환 애니메이션 도중 레이아웃이 아직 안정되지 않은 경우가 있어
-  // 두 프레임 뒤 + 짧은 지연을 한 번 더 두어 안정된 크기에서 확실히 재계산한다.
-  requestAnimationFrame(()=>{
-    requestAnimationFrame(applyPfvFullscreenScale);
-    setTimeout(applyPfvFullscreenScale, 120);
-  });
+let pfvResizeObserver = null;
+function pfvIsActive(){
+  const el = document.getElementById('platformPreviewInner');
+  return !!(el && (document.fullscreenElement === el || el.classList.contains('pfv-fullscreen')));
+}
+function pfvStartWatching(){
+  pfvStopWatching();
+  const el = document.getElementById('platformPreviewInner');
+  const site = el && el.querySelector('.pfv-site');
+  if(!site) return;
+  if(typeof ResizeObserver!=='undefined'){
+    // 콘텐츠 크기가 바뀔 때마다(이미지 로드, 데이터 갱신 등) 자동으로 재계산한다.
+    // transform은 레이아웃 박스 크기에 영향을 주지 않으므로 무한 루프가 생기지 않는다.
+    pfvResizeObserver = new ResizeObserver(()=>{ if(pfvIsActive()) applyPfvFullscreenScale(); });
+    pfvResizeObserver.observe(site);
+  }
+  // 전체화면 전환 애니메이션이 끝난 뒤까지 몇 차례 더 재계산해 타이밍 문제를 방지한다.
+  [0,60,150,300].forEach(delay=>setTimeout(()=>{ if(pfvIsActive()) applyPfvFullscreenScale(); }, delay));
+}
+function pfvStopWatching(){
+  if(pfvResizeObserver){ pfvResizeObserver.disconnect(); pfvResizeObserver = null; }
 }
 function togglePlatformFullscreen(){
   const el = document.getElementById('platformPreviewInner');
   const btn = document.getElementById('pfvFullscreenBtn');
   if(!el || !btn) return;
-  const active = document.fullscreenElement === el || el.classList.contains('pfv-fullscreen');
+  const active = pfvIsActive();
   if(!active){
     const site = el.querySelector('.pfv-site');
     if(site) pfvNaturalWidth = site.getBoundingClientRect().width || pfvNaturalWidth;
     const enterFallback = ()=>{
       el.classList.add('pfv-fullscreen');
       btn.textContent = '⤢ 전체화면 종료';
-      pfvScheduleScale();
+      pfvStartWatching();
     };
     if(el.requestFullscreen){
       el.requestFullscreen().then(()=>{
         el.classList.add('pfv-fullscreen');
         btn.textContent = '⤢ 전체화면 종료';
-        pfvScheduleScale();
+        pfvStartWatching();
       }).catch(enterFallback);
     } else {
       enterFallback();
@@ -2848,35 +2866,33 @@ function togglePlatformFullscreen(){
     if(document.fullscreenElement){ try{ document.exitFullscreen(); }catch(e){} }
     el.classList.remove('pfv-fullscreen');
     btn.textContent = '⛶ 전체화면으로 보기';
+    pfvStopWatching();
     resetPfvScale();
   }
 }
 /* 전체화면일 때 상단 GUI·콘텐츠·하단 푸터를 한 덩어리(.pfv-site)로 보고
-   원래 미리보기 비율 그대로 화면 너비에 꽉 차도록 균일하게 확대(scale)한다.
-   반응형 리플로우가 아니라 '그대로 확대'이므로 양옆 여백이 생기지 않는다. */
-/* 화면에 꽉 채우되(1.0배) 좌우/상하 약간의 여백이 남도록 살짝 줄여서(0.94배) 배치.
-   가로/세로 중 더 빠듯한 쪽 기준으로 배율을 정하므로 캐러셀처럼 세로로 긴 템플릿도
-   화면 밖으로 잘리지 않고 한 화면에 여백과 함께 들어온다. */
+   원래 미리보기 비율 그대로 화면에 꽉 차도록 균일하게 확대(scale)한 뒤, 화면 정중앙에
+   절대좌표로 배치한다. flex 중앙정렬에 기대지 않고 좌표를 직접 계산하므로
+   레이아웃 타이밍 문제 없이 항상 같은 결과를 낸다. */
 const PFV_FIT_MARGIN = 0.94;
 function applyPfvFullscreenScale(){
   const el = document.getElementById('platformPreviewInner');
   const site = el && el.querySelector('.pfv-site');
-  if(!el || !site) return;
-  const active = document.fullscreenElement === el || el.classList.contains('pfv-fullscreen');
-  if(!active) return;
-  // 모달 상단바·하단바는 전체화면에서 숨겨져 있으므로, el 자신의 실제 렌더 박스(=거의 뷰포트 전체)를
-  // 기준으로 맞춘다. window.innerWidth/innerHeight보다 el의 실측값이 더 정확하다.
+  if(!el || !site || !pfvIsActive()) return;
   const box = el.getBoundingClientRect();
   const availW = box.width || window.innerWidth;
   const availH = box.height || window.innerHeight;
-  site.style.width = pfvNaturalWidth + 'px';
   site.style.transform = 'none';
-  site.style.transformOrigin = 'center center';
-  const naturalHeight = site.scrollHeight;
-  if(!naturalHeight){ return; } // 아직 레이아웃이 안정되지 않았으면(0) 다음 예약된 재계산을 기다린다
+  site.style.width = pfvNaturalWidth + 'px';
+  const naturalHeight = site.scrollHeight || site.offsetHeight || (availH / PFV_FIT_MARGIN);
   const scaleW = (availW * PFV_FIT_MARGIN) / pfvNaturalWidth;
   const scaleH = (availH * PFV_FIT_MARGIN) / naturalHeight;
   const scale = Math.min(scaleW, scaleH);
+  const scaledW = pfvNaturalWidth * scale;
+  const scaledH = naturalHeight * scale;
+  site.style.transformOrigin = 'top left';
+  site.style.left = Math.max(0, (availW - scaledW) / 2) + 'px';
+  site.style.top = Math.max(0, (availH - scaledH) / 2) + 'px';
   site.style.transform = `scale(${scale})`;
 }
 function resetPfvScale(){
@@ -2886,8 +2902,8 @@ function resetPfvScale(){
   site.style.width = '';
   site.style.transform = '';
   site.style.transformOrigin = '';
-  site.style.marginLeft = '';
-  site.style.marginRight = '';
+  site.style.left = '';
+  site.style.top = '';
 }
 document.addEventListener('fullscreenchange', ()=>{
   const el = document.getElementById('platformPreviewInner');
@@ -2896,19 +2912,15 @@ document.addEventListener('fullscreenchange', ()=>{
   if(document.fullscreenElement === el){
     el.classList.add('pfv-fullscreen');
     btn.textContent = '⤢ 전체화면 종료';
-    pfvScheduleScale();
+    pfvStartWatching();
   } else {
     btn.textContent = '⛶ 전체화면으로 보기';
     el.classList.remove('pfv-fullscreen');
+    pfvStopWatching();
     resetPfvScale();
   }
 });
-window.addEventListener('resize', ()=>{
-  const el = document.getElementById('platformPreviewInner');
-  if(el && (document.fullscreenElement === el || el.classList.contains('pfv-fullscreen'))){
-    applyPfvFullscreenScale();
-  }
-});
+window.addEventListener('resize', ()=>{ if(pfvIsActive()) applyPfvFullscreenScale(); });
 
 /* ── 기타 (지역학 콘텐츠 탭 내 도서관 직접 구성 카테고리) ── */
 function renderCustom(){
