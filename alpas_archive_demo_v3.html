@@ -421,7 +421,6 @@
     height:100vh !important;
     max-height:100vh !important;
     border-radius:0;
-    position:relative;
   }
   #platformPreviewInner.pfv-fullscreen .pfv-site-content,
   #platformPreviewInner:fullscreen .pfv-site-content{
@@ -429,7 +428,9 @@
     flex:1;
   }
   /* 전체화면에서는 우리 팝업의 상단바·하단바를 감추고, 플랫폼 자체 GUI(상단 로고/검색/내비)가
-     화면 맨 위부터 꽉 차게 보이도록 한다. 종료 버튼만 우측 상단에 떠 있는 형태로 남긴다. */
+     화면 맨 위부터 꽉 차게 보이도록 한다. 종료 버튼만 우측 상단에 떠 있는 형태로 남긴다.
+     콘텐츠는 실제 크기(읽기 편한 크기) 그대로 두고, 화면 폭에 맞춰 적당한 너비로 채우며
+     양옆에는 살짝 여백을 준다. 세로로 길면 자연스럽게 스크롤된다(억지로 축소하지 않는다). */
   #platformPreviewInner.pfv-fullscreen .modal-head,
   #platformPreviewInner:fullscreen .modal-head,
   #platformPreviewInner.pfv-fullscreen .modal-foot,
@@ -438,16 +439,17 @@
   }
   #platformPreviewInner.pfv-fullscreen #pfvFullscreenExitBtn,
   #platformPreviewInner:fullscreen #pfvFullscreenExitBtn{
-    display:block;position:absolute;top:14px;right:16px;z-index:5;
+    display:block;position:fixed;top:14px;right:16px;z-index:5;
     background:rgba(255,255,255,.95);box-shadow:0 2px 10px rgba(0,0,0,.18);
   }
   #platformPreviewInner.pfv-fullscreen .modal-body,
   #platformPreviewInner:fullscreen .modal-body{
-    height:100%;overflow:hidden;position:relative;
+    height:100%;overflow-y:auto;overflow-x:hidden;padding:0;
+    display:flex;justify-content:center;
   }
   #platformPreviewInner.pfv-fullscreen .pfv-site,
   #platformPreviewInner:fullscreen .pfv-site{
-    position:absolute;top:0;left:0;
+    width:100%;max-width:1360px;
   }
   .store-section-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
   .store-section-head h4{margin:0;}
@@ -2813,51 +2815,29 @@ function closePlatformPreview(){
   const el = document.getElementById('platformPreviewInner');
   if(document.fullscreenElement){ try{ document.exitFullscreen(); }catch(e){} }
   if(el) el.classList.remove('pfv-fullscreen');
-  pfvStopWatching();
-  resetPfvScale();
   document.getElementById('platformPreviewModal').classList.remove('on');
 }
-let pfvNaturalWidth = 1060;
-let pfvResizeObserver = null;
 function pfvIsActive(){
   const el = document.getElementById('platformPreviewInner');
   return !!(el && (document.fullscreenElement === el || el.classList.contains('pfv-fullscreen')));
 }
-function pfvStartWatching(){
-  pfvStopWatching();
-  const el = document.getElementById('platformPreviewInner');
-  const site = el && el.querySelector('.pfv-site');
-  if(!site) return;
-  if(typeof ResizeObserver!=='undefined'){
-    // 콘텐츠 크기가 바뀔 때마다(이미지 로드, 데이터 갱신 등) 자동으로 재계산한다.
-    // transform은 레이아웃 박스 크기에 영향을 주지 않으므로 무한 루프가 생기지 않는다.
-    pfvResizeObserver = new ResizeObserver(()=>{ if(pfvIsActive()) applyPfvFullscreenScale(); });
-    pfvResizeObserver.observe(site);
-  }
-  // 전체화면 전환 애니메이션이 끝난 뒤까지 몇 차례 더 재계산해 타이밍 문제를 방지한다.
-  [0,60,150,300].forEach(delay=>setTimeout(()=>{ if(pfvIsActive()) applyPfvFullscreenScale(); }, delay));
-}
-function pfvStopWatching(){
-  if(pfvResizeObserver){ pfvResizeObserver.disconnect(); pfvResizeObserver = null; }
-}
+/* 전체화면에서는 억지로 화면 하나에 다 우겨넣지 않는다. 대신 실제 플랫폼에 들어간 것과 같은
+   읽기 편한 크기 그대로, 화면 폭에 맞춰 적당히 넓게(최대 1360px) 채우고 양옆에 살짝 여백을
+   두며, 콘텐츠가 길면 자연스럽게 세로 스크롤된다. */
 function togglePlatformFullscreen(){
   const el = document.getElementById('platformPreviewInner');
   const btn = document.getElementById('pfvFullscreenBtn');
   if(!el || !btn) return;
   const active = pfvIsActive();
   if(!active){
-    const site = el.querySelector('.pfv-site');
-    if(site) pfvNaturalWidth = site.getBoundingClientRect().width || pfvNaturalWidth;
     const enterFallback = ()=>{
       el.classList.add('pfv-fullscreen');
       btn.textContent = '⤢ 전체화면 종료';
-      pfvStartWatching();
     };
     if(el.requestFullscreen){
       el.requestFullscreen().then(()=>{
         el.classList.add('pfv-fullscreen');
         btn.textContent = '⤢ 전체화면 종료';
-        pfvStartWatching();
       }).catch(enterFallback);
     } else {
       enterFallback();
@@ -2866,44 +2846,7 @@ function togglePlatformFullscreen(){
     if(document.fullscreenElement){ try{ document.exitFullscreen(); }catch(e){} }
     el.classList.remove('pfv-fullscreen');
     btn.textContent = '⛶ 전체화면으로 보기';
-    pfvStopWatching();
-    resetPfvScale();
   }
-}
-/* 전체화면일 때 상단 GUI·콘텐츠·하단 푸터를 한 덩어리(.pfv-site)로 보고
-   원래 미리보기 비율 그대로 화면에 꽉 차도록 균일하게 확대(scale)한 뒤, 화면 정중앙에
-   절대좌표로 배치한다. flex 중앙정렬에 기대지 않고 좌표를 직접 계산하므로
-   레이아웃 타이밍 문제 없이 항상 같은 결과를 낸다. */
-const PFV_FIT_MARGIN = 0.94;
-function applyPfvFullscreenScale(){
-  const el = document.getElementById('platformPreviewInner');
-  const site = el && el.querySelector('.pfv-site');
-  if(!el || !site || !pfvIsActive()) return;
-  const box = el.getBoundingClientRect();
-  const availW = box.width || window.innerWidth;
-  const availH = box.height || window.innerHeight;
-  site.style.transform = 'none';
-  site.style.width = pfvNaturalWidth + 'px';
-  const naturalHeight = site.scrollHeight || site.offsetHeight || (availH / PFV_FIT_MARGIN);
-  const scaleW = (availW * PFV_FIT_MARGIN) / pfvNaturalWidth;
-  const scaleH = (availH * PFV_FIT_MARGIN) / naturalHeight;
-  const scale = Math.min(scaleW, scaleH);
-  const scaledW = pfvNaturalWidth * scale;
-  const scaledH = naturalHeight * scale;
-  site.style.transformOrigin = 'top left';
-  site.style.left = Math.max(0, (availW - scaledW) / 2) + 'px';
-  site.style.top = Math.max(0, (availH - scaledH) / 2) + 'px';
-  site.style.transform = `scale(${scale})`;
-}
-function resetPfvScale(){
-  const el = document.getElementById('platformPreviewInner');
-  const site = el && el.querySelector('.pfv-site');
-  if(!site) return;
-  site.style.width = '';
-  site.style.transform = '';
-  site.style.transformOrigin = '';
-  site.style.left = '';
-  site.style.top = '';
 }
 document.addEventListener('fullscreenchange', ()=>{
   const el = document.getElementById('platformPreviewInner');
@@ -2912,15 +2855,11 @@ document.addEventListener('fullscreenchange', ()=>{
   if(document.fullscreenElement === el){
     el.classList.add('pfv-fullscreen');
     btn.textContent = '⤢ 전체화면 종료';
-    pfvStartWatching();
   } else {
     btn.textContent = '⛶ 전체화면으로 보기';
     el.classList.remove('pfv-fullscreen');
-    pfvStopWatching();
-    resetPfvScale();
   }
 });
-window.addEventListener('resize', ()=>{ if(pfvIsActive()) applyPfvFullscreenScale(); });
 
 /* ── 기타 (지역학 콘텐츠 탭 내 도서관 직접 구성 카테고리) ── */
 function renderCustom(){
