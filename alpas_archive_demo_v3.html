@@ -192,7 +192,7 @@
   .file-chip .sz{color:var(--faint);}
   .file-chip button{margin-left:auto;background:none;border:none;color:var(--danger);cursor:pointer;font-size:12px;}
   .form-actions{padding:16px 14px;display:flex;justify-content:flex-end;gap:8px;}
-  .btn{padding:9px 18px;border-radius:5px;font-size:13.5px;font-weight:600;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;}
+  .btn{padding:9px 18px;border-radius:5px;font-size:13.5px;font-weight:600;border:1px solid var(--line);background:#fff;color:var(--ink);cursor:pointer;white-space:nowrap;}
   .btn.primary{background:var(--primary);border-color:var(--primary);color:#fff;}
   .btn.primary:hover{background:var(--primary-deep);}
   .btn:hover{background:#F5F7F9;}
@@ -463,6 +463,34 @@
   .th-group{margin-bottom:12px;}
   .th-group-head{font-size:12px;font-weight:800;color:var(--primary);margin-bottom:6px;}
   .th-group-items{display:flex;flex-wrap:wrap;gap:6px;}
+  .th-term-btn{background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px;}
+  .th-badge{font-size:9px;margin-left:2px;}
+
+  /* 화도학 브랜딩 대시보드 */
+  .brand-section{margin-bottom:20px;}
+  .brand-section-title{font-size:13px;font-weight:800;color:var(--primary);margin-bottom:8px;}
+  .brand-section-desc{font-size:11.5px;color:var(--muted);margin-bottom:10px;}
+  .brand-rank-row{display:flex;align-items:center;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);}
+  .brand-rank-row:last-child{border-bottom:none;}
+  .brand-rank-no{width:20px;font-weight:800;color:var(--faint);font-size:12px;text-align:center;}
+  .brand-rank-name{flex:1;font-size:12.5px;font-weight:600;}
+  .brand-rank-bar-wrap{flex:2;background:var(--bg-app);border-radius:6px;overflow:hidden;height:14px;}
+  .brand-rank-bar{height:100%;background:var(--primary);border-radius:6px;}
+  .brand-rank-count{width:44px;text-align:right;font-size:11px;color:var(--muted);}
+  .brand-chart{display:flex;align-items:flex-end;gap:8px;height:120px;padding:8px 4px 0;}
+  .brand-chart-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%;}
+  .brand-chart-bar{width:100%;max-width:34px;background:var(--primary);border-radius:4px 4px 0 0;min-height:2px;}
+  .brand-chart-label{font-size:10px;color:var(--muted);margin-top:4px;white-space:nowrap;}
+  .brand-chart-value{font-size:10px;color:var(--primary);font-weight:700;}
+  .brand-badge-pill{display:inline-flex;align-items:center;gap:4px;background:#FBE9C6;color:#8a5b00;font-size:10.5px;font-weight:700;padding:3px 9px;border-radius:10px;}
+  .brand-cooc-row{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:8px;}
+  .brand-cooc-main{font-weight:800;color:var(--primary);font-size:12px;}
+  .brand-cooc-chip{font-size:11px;background:var(--bg-app);color:var(--ink);padding:3px 8px;border-radius:8px;}
+
+  /* 주제 허브 */
+  .hub-head-badge{display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap;}
+  .hub-item-row{display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px;}
+  .hub-item-row:last-child{border-bottom:none;}
 
   /* 포함 자료 선택 리스트 배지 (등록자료 / 지역학 콘텐츠 구분) */
   .pick-item .src-badge{font-size:9.5px;font-weight:700;padding:1px 6px;border-radius:8px;margin-left:auto;white-space:nowrap;}
@@ -804,7 +832,7 @@
           <div class="field"><input type="text" id="f_url" placeholder="예: 유튜브 영상 주소, 신문기사 링크 등 디지털 원문 URL"></div>
           <label>지역 태그<span class="dc">Coverage</span></label>
           <div class="field"><input type="text" id="f_coverage" placeholder="예: 남양주시 화도읍 (쉼표 구분)"></div>
-          <label>주제 태그<span class="dc">Subject</span><button type="button" class="btn sm" style="margin-left:6px;" onclick="openThesaurus()">📖 화도학 용어집 바로가기</button></label>
+          <label>주제 태그<span class="dc">Subject</span><button type="button" class="btn sm" style="margin-left:6px;" onclick="openThesaurus()">📖 화도학 용어집 바로가기</button><button type="button" class="btn sm" style="margin-left:6px;" onclick="openBrandingDashboard()">📊 화도학 브랜딩 대시보드</button></label>
           <div class="field" style="position:relative;display:block;">
             <div class="tag-input" id="subjectTagBox" onclick="document.getElementById('f_subject_text').focus()">
               <div id="subjectChips" style="display:contents;"></div>
@@ -902,7 +930,7 @@
     <div class="page-sub">기증받은 지역학 자료를 기증자별로 모아 이력을 확인합니다.</div>
     <div class="panel">
       <table>
-        <thead><tr><th style="width:22%">기증자</th><th>기증 건수</th><th>최근 기증일</th><th>등록 상태</th><th style="width:100px"></th></tr></thead>
+        <thead><tr><th style="width:22%">기증자</th><th>기증 건수</th><th>최근 기증일</th><th>등록 상태</th><th style="width:126px"></th></tr></thead>
         <tbody id="donorBody"></tbody>
       </table>
       <div class="empty" id="donorEmpty" style="display:none;"><b>기증 자료가 없습니다</b>'기증 자료 등록'에서 먼저 기증 자료를 등록해 보세요.</div>
@@ -1234,16 +1262,48 @@
       <button class="modal-x" onclick="closeThesaurus()">✕</button>
     </div>
     <div class="modal-body">
-      <div class="hint" style="display:block;margin-bottom:10px;">사서가 주제어를 입력할 때마다 자동으로 쌓이는 용어 목록입니다. 여기서 직접 추가·수정·삭제할 수도 있고, 자료 등록 화면의 주제 태그 입력 시 초성 검색으로 바로 추천됩니다. (검색 기능 반영은 다음 단계 예정)</div>
+      <div class="hint" style="display:block;margin-bottom:10px;">사서가 주제어를 입력할 때마다 자동으로 쌓이는 용어 목록입니다. 여기서 직접 추가·수정·삭제할 수도 있고, 자료 등록 화면의 주제 태그 입력 시 초성 검색으로 바로 추천됩니다. 사용 횟수가 일정 기준 이상인 용어에는 🏅 배지가 붙어 플랫폼 미리보기의 '화도학 브랜드 키워드'에도 노출됩니다.</div>
+      <div id="thTopKeywords" class="brand-section" style="margin-bottom:16px;"></div>
       <div class="brow"><label>새 용어 추가</label><input type="text" id="th_new_term" placeholder="용어를 입력하세요" oninput="renderThesaurusSimilar()"></div>
       <div id="thSimilar" class="ord-book-results" style="display:none;"></div>
       <div style="display:flex;justify-content:flex-end;margin-bottom:14px;"><button type="button" class="btn primary sm" onclick="addThesaurusTermManual()">+ 용어집에 추가</button></div>
       <div class="brow"><label>검색</label><input type="text" id="th_search" placeholder="용어 또는 초성으로 검색 (예: ㅎㄷㅇ)" oninput="renderThesaurusList()"></div>
+      <div class="hint" style="display:block;margin-bottom:6px;">용어를 클릭하면 그 주제로 태깅된 자료를 모아보는 '주제 허브'가 열립니다</div>
       <div id="thesaurusList"></div>
     </div>
     <div class="modal-foot">
       <span class="hint" id="thCountHint"></span>
       <div><button type="button" class="btn primary" onclick="closeThesaurus()">닫기</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- 화도학 브랜딩 대시보드 -->
+<div class="modal-backdrop" id="brandingDashboardModal">
+  <div class="modal" style="max-width:680px;max-height:90vh;">
+    <div class="modal-head">
+      <span>화도학 브랜딩 대시보드</span>
+      <button class="modal-x" onclick="closeBrandingDashboard()">✕</button>
+    </div>
+    <div class="modal-body" id="brandDashboardBody"></div>
+    <div class="modal-foot">
+      <span class="hint">축적된 등록 자료·용어 데이터를 지역 브랜딩 산출물로 자동 변환해 보여줍니다</span>
+      <div><button type="button" class="btn primary" onclick="closeBrandingDashboard()">닫기</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- 주제 허브 (용어 클릭 시 관련 자료 모아보기) -->
+<div class="modal-backdrop" id="topicHubModal">
+  <div class="modal" style="max-width:560px;max-height:90vh;">
+    <div class="modal-head">
+      <span id="hubTitle">주제 허브</span>
+      <button class="modal-x" onclick="closeTopicHub()">✕</button>
+    </div>
+    <div class="modal-body" id="hubBody"></div>
+    <div class="modal-foot">
+      <span class="hint">해당 주제어가 붙은 자료·컬렉션을 모아 보여줍니다</span>
+      <div><button type="button" class="btn primary" onclick="closeTopicHub()">닫기</button></div>
     </div>
   </div>
 </div>
@@ -1574,8 +1634,10 @@ function renderDonors(){
       <td>${latest}</td>
       <td>${statusHtml}</td>
       <td>
-        <button type="button" class="btn sm" onclick="toggleDonorDetail(this)">자료 보기</button>
-        <button type="button" class="btn sm" onclick="openDonorProfile('${escapeHtml(name).replace(/'/g,"\\'")}')">프로필 관리</button>
+        <div style="display:flex;flex-direction:column;gap:5px;align-items:flex-start;">
+          <button type="button" class="btn sm" onclick="toggleDonorDetail(this)">자료 보기</button>
+          <button type="button" class="btn sm" onclick="openDonorProfile('${escapeHtml(name).replace(/'/g,"\\'")}')">프로필 관리</button>
+        </div>
       </td>
     </tr>
     <tr class="donor-detail" style="display:none;">
@@ -2021,12 +2083,14 @@ function renderThesaurusList(){
       <div class="th-group-items">
         ${groups[g].map(t=>`
           <span class="ord-book-chip" style="background:var(--amber-tint);color:var(--amber);">
-            ${escapeHtml(t.term)} <span style="opacity:.7;">(${t.useCount})</span>
+            <button type="button" class="th-term-btn" onclick="openTopicHub('${escapeHtml(t.term).replace(/'/g,"\\'")}')">${escapeHtml(t.term)}</button>
+            <span style="opacity:.7;">(${t.useCount})</span>${t.useCount>=BRAND_BADGE_THRESHOLD ? '<span class="th-badge" title="화도학 특화 키워드">🏅</span>' : ''}
             <span class="x" onclick="deleteThesaurusTerm('${t.id}')">✕</span>
           </span>`).join('')}
       </div>
     </div>`).join('') : `<span class="hint">등록된 용어가 없습니다</span>`;
-  document.getElementById('thCountHint').textContent = `총 ${thesaurusTerms.length}개 용어 · 가나다(초성)순 정렬`;
+  document.getElementById('thCountHint').textContent = `총 ${thesaurusTerms.length}개 용어 · 가나다(초성)순 정렬 · 🏅 사용 ${BRAND_BADGE_THRESHOLD}회 이상 특화 키워드`;
+  renderThTopKeywords();
 }
 async function deleteThesaurusTerm(id){
   if(!confirm('이 용어를 화도학 용어집에서 삭제할까요?')) return;
@@ -2034,6 +2098,140 @@ async function deleteThesaurusTerm(id){
   await saveThesaurus();
   renderThesaurusList();
 }
+
+/* ══════ 화도학 브랜딩: 핵심 키워드 랭킹·인증 배지 ══════ */
+const BRAND_BADGE_THRESHOLD = 3;
+function topKeywords(n){
+  return thesaurusTerms.slice().sort((a,b)=>(b.useCount||0)-(a.useCount||0)).slice(0, n||10);
+}
+function renderKeywordRankingHtml(list){
+  if(!list.length) return `<span class="hint">아직 축적된 용어가 없습니다</span>`;
+  const max = Math.max(...list.map(t=>t.useCount||0), 1);
+  return list.map((t,i)=>`
+    <div class="brand-rank-row">
+      <div class="brand-rank-no">${i+1}</div>
+      <button type="button" class="th-term-btn brand-rank-name" onclick="openTopicHub('${escapeHtml(t.term).replace(/'/g,"\\'")}')">${escapeHtml(t.term)}${t.useCount>=BRAND_BADGE_THRESHOLD ? ' <span class="th-badge" title="화도학 특화 키워드">🏅</span>' : ''}</button>
+      <div class="brand-rank-bar-wrap"><div class="brand-rank-bar" style="width:${Math.round((t.useCount||0)/max*100)}%;"></div></div>
+      <div class="brand-rank-count">${t.useCount||0}회</div>
+    </div>`).join('');
+}
+function renderThTopKeywords(){
+  const el = document.getElementById('thTopKeywords');
+  if(!el) return;
+  const top = topKeywords(5);
+  el.innerHTML = `<div class="brand-section-title">🏅 화도학 핵심 키워드 TOP 5</div>` + renderKeywordRankingHtml(top);
+}
+
+/* ══════ 주제 허브: 용어 클릭 시 관련 자료 모아보기 ══════ */
+function recordsForTerm(term){
+  return records.filter(r=>(r.subject||'').split(',').map(s=>s.trim()).includes(term));
+}
+function coOccurringTerms(term, n){
+  const counts = {};
+  recordsForTerm(term).forEach(r=>{
+    (r.subject||'').split(',').map(s=>s.trim()).filter(Boolean).forEach(s=>{
+      if(s===term) return;
+      counts[s] = (counts[s]||0) + 1;
+    });
+  });
+  return Object.entries(counts).sort((a,b)=>b[1]-a[1]).slice(0, n||8);
+}
+function openTopicHub(term){
+  const t = thesaurusTerms.find(x=>x.term===term);
+  const matched = recordsForTerm(term);
+  const matchedIds = new Set(matched.map(r=>r.id));
+  const matchedCollections = collections.filter(c=>(c.itemIds||[]).some(id=>matchedIds.has(id)));
+  const cooc = coOccurringTerms(term, 8);
+  document.getElementById('hubTitle').textContent = `📍 ${term} 주제 허브`;
+  document.getElementById('hubBody').innerHTML = `
+    <div class="hub-head-badge">
+      <span class="hint" style="margin:0;">사용 ${t ? t.useCount : matched.length}회</span>
+      ${t && t.useCount>=BRAND_BADGE_THRESHOLD ? `<span class="brand-badge-pill">🏅 화도학 특화 키워드</span>` : ''}
+    </div>
+    <div class="brand-section">
+      <div class="brand-section-title">연관 자료 (${matched.length}건)</div>
+      ${matched.length ? matched.map(r=>`
+        <div class="hub-item-row"><span>${escapeHtml(r.title)}</span><span class="hint" style="margin:0;">${escapeHtml(r.type||'')} · ${r.status}</span></div>`).join('')
+        : `<span class="hint">아직 이 주제로 태깅된 자료가 없습니다</span>`}
+    </div>
+    <div class="brand-section">
+      <div class="brand-section-title">이 주제를 포함한 플랫폼 단 (${matchedCollections.length}개)</div>
+      ${matchedCollections.length ? matchedCollections.map(c=>`
+        <div class="hub-item-row"><span>${escapeHtml(c.title)}</span></div>`).join('')
+        : `<span class="hint">아직 이 주제 자료를 포함한 단이 없습니다</span>`}
+    </div>
+    <div class="brand-section">
+      <div class="brand-section-title">함께 자주 쓰인 용어</div>
+      ${cooc.length ? `<div class="brand-cooc-row">${cooc.map(([term2,cnt])=>`<button type="button" class="th-term-btn brand-cooc-chip" onclick="openTopicHub('${escapeHtml(term2).replace(/'/g,"\\'")}')">${escapeHtml(term2)} (${cnt})</button>`).join('')}</div>`
+        : `<span class="hint">함께 쓰인 용어가 아직 없습니다</span>`}
+    </div>`;
+  document.getElementById('topicHubModal').classList.add('on');
+}
+function closeTopicHub(){ document.getElementById('topicHubModal').classList.remove('on'); }
+
+/* ══════ 지역아카이브 성장 리포트 ══════ */
+function countsByYear(dates){
+  const counts = {};
+  dates.forEach(d=>{
+    const y = (d||'').slice(0,4);
+    if(!/^\d{4}$/.test(y)) return;
+    counts[y] = (counts[y]||0) + 1;
+  });
+  const years = Object.keys(counts).sort();
+  return years.map(y=>({label:y, value:counts[y]}));
+}
+function renderBarChartHtml(data){
+  if(!data.length) return `<span class="hint">표시할 데이터가 없습니다</span>`;
+  const max = Math.max(...data.map(d=>d.value), 1);
+  return `<div class="brand-chart">${data.map(d=>`
+    <div class="brand-chart-col">
+      <div class="brand-chart-value">${d.value}</div>
+      <div class="brand-chart-bar" style="height:${Math.max(4, Math.round(d.value/max*90))}px;"></div>
+      <div class="brand-chart-label">${escapeHtml(d.label)}</div>
+    </div>`).join('')}</div>`;
+}
+function allCooccurrencePairs(n){
+  const pairCounts = {};
+  records.forEach(r=>{
+    const subs = (r.subject||'').split(',').map(s=>s.trim()).filter(Boolean);
+    for(let i=0;i<subs.length;i++){
+      for(let j=i+1;j<subs.length;j++){
+        const key = [subs[i],subs[j]].sort().join(' · ');
+        pairCounts[key] = (pairCounts[key]||0) + 1;
+      }
+    }
+  });
+  return Object.entries(pairCounts).sort((a,b)=>b[1]-a[1]).slice(0, n||8);
+}
+function openBrandingDashboard(){
+  const recordYearData = countsByYear(records.map(r=>r.collectDate || (r.createdAt||'').slice(0,10)));
+  const termYearData = countsByYear(thesaurusTerms.map(t=>t.createdAt));
+  const pairs = allCooccurrencePairs(8);
+  document.getElementById('brandDashboardBody').innerHTML = `
+    <div class="brand-section">
+      <div class="brand-section-title">🏅 화도학 핵심 키워드 TOP 10</div>
+      <div class="brand-section-desc">사서가 자료를 등록할 때마다 자동으로 쌓인 주제어 사용 빈도입니다. 도서관이 실제로 강점을 가진 지역 주제가 무엇인지 그대로 드러납니다.</div>
+      ${renderKeywordRankingHtml(topKeywords(10))}
+    </div>
+    <div class="brand-section">
+      <div class="brand-section-title">📈 연도별 등록 자료 성장</div>
+      <div class="brand-section-desc">지역학 자료·기증 자료가 연도별로 얼마나 쌓여왔는지 보여주는 성장 지표입니다.</div>
+      ${renderBarChartHtml(recordYearData)}
+    </div>
+    <div class="brand-section">
+      <div class="brand-section-title">📈 화도학 용어집 누적 추이</div>
+      <div class="brand-section-desc">지역 특화 시소러스(용어집)가 연도별로 얼마나 확장되어 왔는지 보여줍니다.</div>
+      ${renderBarChartHtml(termYearData)}
+    </div>
+    <div class="brand-section">
+      <div class="brand-section-title">🕸 화도학 키워드 연관망</div>
+      <div class="brand-section-desc">한 자료에 함께 태깅된 주제어 조합입니다. 자주 등장하는 조합일수록 지역 정체성을 이루는 핵심 스토리 라인입니다.</div>
+      ${pairs.length ? pairs.map(([pair,cnt])=>`<div class="brand-cooc-row"><span class="brand-cooc-main">${escapeHtml(pair)}</span><span class="brand-cooc-chip">${cnt}건 동시 등장</span></div>`).join('')
+        : `<span class="hint">아직 한 자료에 2개 이상의 주제어가 함께 태깅된 사례가 없습니다</span>`}
+    </div>`;
+  document.getElementById('brandingDashboardModal').classList.add('on');
+}
+function closeBrandingDashboard(){ document.getElementById('brandingDashboardModal').classList.remove('on'); }
 function renderSubjectTags(keepFocus){
   document.getElementById('subjectChips').innerHTML = subjectTags.map((t,i)=>`
     <span class="tag-chip">${escapeHtml(t)}<button type="button" class="tag-x" onclick="event.stopPropagation();removeSubjectTag(${i})">×</button></span>
@@ -2539,11 +2737,28 @@ function renderCurateSectionBody(c, tpl){
   }).join('');
   return `<div class="cap-grid" style="${bgStyle}padding:10px;border-radius:6px;">${cardsHtml}</div>`;
 }
+function renderBrandKeywordStripHtml(){
+  const top = topKeywords(8);
+  if(!top.length) return '';
+  return `
+    <div class="pfv-section">
+      <div class="pfv-section-head">
+        <div>
+          <span class="tag">${escapeHtml(settings.localStudyName || '지역학')} 브랜드 키워드</span>
+          <h4>🏅 ${escapeHtml(settings.localStudyName || '지역학')}이(가) 가장 많이 다룬 주제</h4>
+          <p>사서가 자료를 등록할 때마다 자동으로 쌓인 주제어 순위입니다. 이 도서관이 지역에서 어떤 이야기를 가장 깊이 축적해왔는지를 보여줍니다.</p>
+        </div>
+      </div>
+      <div class="pfv-section-body" style="display:flex;flex-wrap:wrap;gap:8px;">
+        ${top.map(t=>`<span class="brand-badge-pill" style="${t.useCount>=BRAND_BADGE_THRESHOLD?'':'background:var(--bg-app);color:var(--ink);'}">${t.useCount>=BRAND_BADGE_THRESHOLD?'🏅 ':''}${escapeHtml(t.term)} (${t.useCount})</span>`).join('')}
+      </div>
+    </div>`;
+}
 function openPlatformPreview(){
   const localNavEl = document.getElementById('pfvLocalNav');
   if(localNavEl) localNavEl.textContent = settings.localStudyName || '지역학';
   const body = document.getElementById('platformPreviewBody');
-  body.innerHTML = collections.length ? collections.map((c,i)=>{
+  body.innerHTML = renderBrandKeywordStripHtml() + (collections.length ? collections.map((c,i)=>{
     const tpl = TEMPLATES.find(t=>t.id===c.templateId) || TEMPLATES[0];
     return `
     <div class="pfv-section">
@@ -2557,7 +2772,7 @@ function openPlatformPreview(){
       </div>
       <div class="pfv-section-body">${renderCurateSectionBody(c, tpl)}</div>
     </div>`;
-  }).join('') : `<div class="empty" style="padding:40px 10px;"><b>구성된 단이 없습니다</b>'+ 새 단 추가'로 플랫폼의 첫 단을 만들어 보세요.</div>`;
+  }).join('') : `<div class="empty" style="padding:40px 10px;"><b>구성된 단이 없습니다</b>'+ 새 단 추가'로 플랫폼의 첫 단을 만들어 보세요.</div>`);
   document.getElementById('platformPreviewModal').classList.add('on');
 }
 function closePlatformPreview(){
