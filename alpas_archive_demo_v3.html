@@ -210,6 +210,21 @@
   .tag-suggest-item:hover{background:#F2F5F8;}
   .tag-suggest-item .cho{color:var(--faint);font-size:10.5px;margin-left:6px;}
 
+  /* 화도학 분류(카테고리) 토글 칩 + 관리 목록 */
+  .cat-chip-picker{display:flex;flex-wrap:wrap;gap:6px;}
+  .cat-chip{display:inline-flex;align-items:center;gap:3px;border:1px solid #D6DBE1;background:#fff;color:var(--ink);border-radius:999px;padding:5px 12px;font-size:12.5px;font-weight:600;cursor:pointer;user-select:none;}
+  .cat-chip:hover{border-color:var(--primary);}
+  .cat-chip.on{background:var(--primary);border-color:var(--primary);color:#fff;}
+  .cat-chip-empty{font-size:12px;color:var(--muted);}
+  .cat-mgr-row{display:flex;align-items:center;gap:8px;padding:8px 4px;border-bottom:1px solid var(--line);}
+  .cat-mgr-row input{flex:1;border:1px solid transparent;background:transparent;font-size:13px;font-weight:600;padding:4px 6px;border-radius:4px;}
+  .cat-mgr-row input:focus{border-color:var(--primary);background:#fff;outline:none;}
+  .cat-mgr-count{font-size:11.5px;color:var(--muted);white-space:nowrap;}
+  .cat-filter-bar{display:flex;flex-wrap:wrap;gap:6px;padding:0 0 12px;}
+  .cat-filter-chip{display:inline-flex;align-items:center;gap:4px;border:1px solid #D6DBE1;background:#fff;color:var(--ink);border-radius:999px;padding:4px 11px;font-size:12px;font-weight:600;cursor:pointer;}
+  .cat-filter-chip:hover{border-color:var(--primary);}
+  .cat-filter-chip.on{background:var(--primary-tint);border-color:var(--primary);color:var(--primary);}
+
   /* 발행 화면 */
   .pub-toolbar{display:flex;gap:8px;padding:14px;border-bottom:1px solid var(--line);align-items:center;}
   .count-chip{margin-left:auto;font-size:12px;color:var(--muted);}
@@ -708,7 +723,6 @@
     <div class="menu-col">
       <h4>등록</h4>
       <div class="menu-item live" onclick="openForm('등록')"><span class="chev">›</span>지역학 자료 등록</div>
-      <div class="menu-item"><span class="chev">›</span>등록목록관리</div>
     </div>
     <div class="menu-col">
       <h4>기증</h4>
@@ -787,8 +801,11 @@
         <button class="btn" id="btnInspect" onclick="startInspection()" style="display:none;" disabled>검수 시작</button>
         <button class="btn" id="btnHandover" onclick="handoverSelected()" style="display:none;" disabled>등록인계</button>
         <button class="btn" onclick="exportExcel()">출력</button>
+        <button class="btn" onclick="openCategoryManager()">🏷 화도학 분류 관리</button>
         <span class="toolbar-hint">선택 후 수정·삭제·검수 시작·등록인계를 사용할 수 있습니다</span>
       </div>
+
+      <div class="cat-filter-bar" id="categoryFilterBar"></div>
 
       <table>
         <thead>
@@ -870,6 +887,14 @@
             </div>
             <div class="tag-suggest" id="subjectSuggest" style="display:none;"></div>
             <div class="hint" id="subjectHint" style="margin-top:4px;"></div>
+          </div>
+          <label>화도학 분류<span class="dc">Category</span></label>
+          <div class="field" style="display:block;">
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+              <button type="button" class="btn sm" onclick="openCategoryManager()">🏷 분류 추가·수정·삭제</button>
+            </div>
+            <div class="cat-chip-picker" id="categoryFieldChips"></div>
+            <div class="hint" style="margin-top:4px;">이 도서관만의 갈래(예: 이석영, 음악, 화도읍 생활상)로 중복 선택할 수 있습니다. 새 분류는 위 버튼으로 먼저 만들어 주세요.</div>
           </div>
           <label>공개범위 <span class="req">*</span><span class="dc">Rights</span></label>
           <div class="field">
@@ -1026,7 +1051,10 @@
 
       <div class="builder" id="collBuilder" style="display:none;">
         <div class="edit-mode-label" id="builderModeLabel"></div>
-        <div class="brow"><label>단 제목</label><input type="text" id="c_title" placeholder="예: 마석우리 장터의 기억"></div>
+        <div class="brow"><label>단 제목</label><div style="display:flex;gap:8px;">
+          <input type="text" id="c_title" style="flex:1;" placeholder="예: 마석우리 장터의 기억">
+          <select id="c_title_from_category" style="max-width:200px;" onchange="if(this.value){document.getElementById('c_title').value=this.value;} this.value='';"><option value="">화도학 분류에서 선택…</option></select>
+        </div></div>
         <div class="brow"><label>소개글</label><textarea id="c_desc" placeholder="이 단을 방문자에게 어떻게 소개할지 작성"></textarea></div>
         <div class="brow"><label>대표 이미지</label><div><div class="thumb-pick" id="thumbPick"></div><div class="hint">포함 자료 중 이미지가 있는 항목에서 대표 이미지를 선택하세요</div></div></div>
         <div class="brow"><label>배경 설정</label><div>
@@ -1309,6 +1337,26 @@
   </div>
 </div>
 
+<!-- 화도학 분류(카테고리) 관리 -->
+<div class="modal-backdrop" id="categoryModal">
+  <div class="modal" style="max-width:520px;max-height:90vh;">
+    <div class="modal-head">
+      <span>화도학 분류 관리</span>
+      <button class="modal-x" onclick="closeCategoryManager()">✕</button>
+    </div>
+    <div class="modal-body mb-pad">
+      <div class="hint" style="display:block;margin-bottom:10px;">'이석영', '음악', '화도읍 생활상'처럼 이 도서관만의 갈래로 자료를 묶기 위한 분류입니다. 여기서 추가·수정·삭제한 분류는 자료 등록/수정 화면에서 선택할 수 있고, 목록에서 분류별로 걸러볼 수 있으며, 플랫폼 '단' 제목을 만들 때도 그대로 불러다 쓸 수 있습니다.</div>
+      <div class="brow"><label>새 분류 추가</label><input type="text" id="cat_new_name" placeholder="예: 이석영, 음악, 화도읍 생활상" onkeydown="if(event.key==='Enter'){event.preventDefault();addCategoryManual();}"></div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:14px;"><button type="button" class="btn primary sm" onclick="addCategoryManual()">+ 분류 추가</button></div>
+      <div id="categoryManagerList"></div>
+    </div>
+    <div class="modal-foot">
+      <span class="hint" id="categoryCountHint"></span>
+      <div><button type="button" class="btn primary" onclick="closeCategoryManager()">닫기</button></div>
+    </div>
+  </div>
+</div>
+
 <!-- 화도학 브랜딩 대시보드 -->
 <div class="modal-backdrop" id="brandingDashboardModal">
   <div class="modal" style="max-width:680px;max-height:90vh;">
@@ -1353,6 +1401,9 @@ let records = [];
 let pendingFiles = [];
 let pendingAlpasLinks = [];
 let subjectTags = [];
+let categories = []; // 화도학 분류(카테고리): {id, name, createdAt} — 사서가 직접 추가/수정/삭제로 관리
+let categoryTags = []; // 등록/수정 폼에서 현재 선택 중인 분류명 목록
+let activeCategoryFilter = null; // 목록 화면에서 선택된 분류 필터(null=전체)
 let currentAcq = '등록';
 /* 데모 전제: 도서관에 이미 등록번호가 수만 건 쌓여 있다고 가정하고, 그 다음 빈 번호부터
    자동 채번되는 것처럼 보이도록 초기 카운터를 크게 잡아둔다. 실제 연동 시에는 이 초기값을
@@ -1433,6 +1484,7 @@ function recordToRow(r){
     creator:r.creator||'', contributor:r.contributor||'',
     prod_date:r.prodDate||null, collect_date:r.collectDate||null,
     description:r.desc||'', coverage:r.coverage||'', subject:r.subject||'',
+    categories:r.categories||[],
     rights:r.rights, source:r.source||'', source_url:r.sourceUrl||'', alpas_list:r.alpasList||[],
     receipt_no:r.receiptNo||'',
     files:r.files||[], status:r.status, reg_no:r.regNo||'',
@@ -1445,6 +1497,7 @@ function rowToRecord(row){
     creator:row.creator, contributor:row.contributor,
     prodDate:row.prod_date, collectDate:row.collect_date,
     desc:row.description, coverage:row.coverage, subject:row.subject,
+    categories:row.categories||[],
     rights:row.rights, source:row.source, sourceUrl:row.source_url, alpasList:row.alpas_list||[],
     receiptNo:row.receipt_no,
     files:row.files||[], status:row.status, regNo:row.reg_no,
@@ -1481,6 +1534,12 @@ function thesaurusToRow(t){
 }
 function rowToThesaurus(row){
   return { id:row.id, term:row.term, chosung:row.chosung||'', useCount:row.use_count||1, createdAt:row.created_at };
+}
+function categoryToRow(c){
+  return { id:c.id, name:c.name, created_at:c.createdAt||new Date().toISOString() };
+}
+function rowToCategory(row){
+  return { id:row.id, name:row.name, createdAt:row.created_at };
 }
 function donorToRow(d){
   return { id:d.id, name:d.name, phone:d.phone||'', address:d.address||'', consent_note:d.consentNote||'',
@@ -1549,6 +1608,12 @@ async function loadRecords(){
     if(error) throw error;
     donors = (data||[]).map(rowToDonor);
   }catch(e){ console.error('기증자 프로필 불러오기 실패', e); donors = []; }
+
+  try{
+    const { data, error } = await sb.from('local_categories').select('*').order('name', {ascending:true});
+    if(error) throw error;
+    categories = (data||[]).map(rowToCategory);
+  }catch(e){ console.error('화도학 분류 불러오기 실패', e); categories = []; }
 }
 async function saveRecords(){
   if(!sb) return;
@@ -1595,6 +1660,13 @@ async function saveDonors(){
   try{
     await sb.from('donors').delete().neq('id','__none__');
     if(donors.length) await sb.from('donors').insert(donors.map(donorToRow));
+  }catch(e){ console.error('저장 실패', e); }
+}
+async function saveCategories(){
+  if(!sb) return;
+  try{
+    await sb.from('local_categories').delete().neq('id','__none__');
+    if(categories.length) await sb.from('local_categories').insert(categories.map(categoryToRow));
   }catch(e){ console.error('저장 실패', e); }
 }
 
@@ -1771,6 +1843,7 @@ function resetSearch(){
   document.getElementById('q_kw').value='';
   document.getElementById('q_type').value='';
   document.getElementById('q_rights').value='';
+  activeCategoryFilter = null;
   renderGrid();
 }
 function currentList(){ return records.filter(r=>r.acquisition===currentAcq); }
@@ -1784,8 +1857,26 @@ function filteredList(){
     if(type && r.type!==type) return false;
     if(rights && r.rights!==rights) return false;
     if(kw && !r.title.toLowerCase().includes(kw)) return false;
+    if(activeCategoryFilter && !(r.categories||[]).includes(activeCategoryFilter)) return false;
     return true;
   });
+}
+function setCategoryFilter(name){
+  activeCategoryFilter = (activeCategoryFilter===name) ? null : name;
+  renderGrid();
+}
+function renderCategoryFilterBar(){
+  const bar = document.getElementById('categoryFilterBar');
+  if(!bar) return;
+  const list = currentList();
+  const used = categories.filter(c=>list.some(r=>(r.categories||[]).includes(c.name)));
+  if(!used.length){ bar.innerHTML=''; return; }
+  const chips = [`<span class="cat-filter-chip ${!activeCategoryFilter?'on':''}" onclick="setCategoryFilter(null)">전체 (${list.length})</span>`]
+    .concat(used.map(c=>{
+      const n = list.filter(r=>(r.categories||[]).includes(c.name)).length;
+      return `<span class="cat-filter-chip ${activeCategoryFilter===c.name?'on':''}" onclick="setCategoryFilter('${c.name.replace(/'/g,"\\'")}')">${escapeHtml(c.name)} (${n})</span>`;
+    }));
+  bar.innerHTML = chips.join('');
 }
 function fileExt(f){
   const m = (f.name||'').match(/\.([a-zA-Z0-9]+)$/);
@@ -1796,6 +1887,7 @@ function fileExt(f){
 function renderGrid(){
   const all = currentList();
   const list = filteredList();
+  renderCategoryFilterBar();
   document.getElementById('gridCount').textContent = `전체 ${all.length}건 · 조회 ${list.length}건`;
   document.getElementById('gridEmpty').style.display = list.length ? 'none':'block';
   document.getElementById('gridBody').innerHTML = list.map(r=>{
@@ -1916,6 +2008,8 @@ function openModal(mode){
     document.getElementById('f_coverage').value = r.coverage||'';
     subjectTags = r.subject ? r.subject.split(',').map(s=>s.trim()).filter(Boolean) : [];
     renderSubjectTags();
+    categoryTags = r.categories ? r.categories.slice() : [];
+    renderCategoryFieldChips();
     document.querySelector(`input[name=rights][value="${r.rights}"]`).checked = true;
     document.getElementById('f_source').value = r.source||'';
     pendingAlpasLinks = r.alpasList ? r.alpasList.slice() : (r.alpas ? [{title:r.alpas, call:''}] : []);
@@ -1949,6 +2043,23 @@ function clearModalFields(){
   pendingAlpasLinks = []; renderAlpasLinkedList();
   subjectTags = []; document.getElementById('f_subject_text').value=''; renderSubjectTags();
   hideSubjectSuggest();
+  categoryTags = []; renderCategoryFieldChips();
+}
+function toggleCategoryTag(name){
+  const i = categoryTags.indexOf(name);
+  if(i>=0) categoryTags.splice(i,1); else categoryTags.push(name);
+  renderCategoryFieldChips();
+}
+function renderCategoryFieldChips(){
+  const box = document.getElementById('categoryFieldChips');
+  if(!box) return;
+  if(!categories.length){
+    box.innerHTML = `<span class="cat-chip-empty">아직 만들어진 분류가 없습니다 — '분류 관리'에서 먼저 추가해 주세요</span>`;
+    return;
+  }
+  box.innerHTML = categories.slice().sort((a,b)=>a.name.localeCompare(b.name,'ko')).map(c=>
+    `<span class="cat-chip ${categoryTags.includes(c.name)?'on':''}" onclick="toggleCategoryTag('${c.name.replace(/'/g,"\\'")}')">${escapeHtml(c.name)}</span>`
+  ).join('');
 }
 function switchMTab(tab){
   document.querySelectorAll('.mtab').forEach(t=>t.classList.toggle('on', t.dataset.mt===tab));
@@ -1988,6 +2099,7 @@ async function submitForm(){
     sourceUrl: document.getElementById('f_url').value.trim(),
     coverage: document.getElementById('f_coverage').value.trim(),
     subject: subjectTags.join(','),
+    categories: categoryTags.slice(),
     rights: document.querySelector('input[name=rights]:checked').value,
     source: document.getElementById('f_source').value.trim(),
     alpasList: pendingAlpasLinks.slice(),
@@ -2131,6 +2243,72 @@ async function deleteThesaurusTerm(id){
   thesaurusTerms = thesaurusTerms.filter(t=>t.id!==id);
   await saveThesaurus();
   renderThesaurusList();
+}
+
+/* ══════ 화도학 분류(카테고리) 관리 — '이석영', '음악', '화도읍 생활상'처럼
+   사서가 직접 만드는 이 도서관만의 갈래. 자료 등록/수정, 목록 필터,
+   플랫폼 '단' 제목 선택에서 공통으로 재사용된다. ══════ */
+function categoryRecordCount(name){
+  return records.filter(r=>(r.categories||[]).includes(name)).length;
+}
+function openCategoryManager(){
+  document.getElementById('cat_new_name').value='';
+  renderCategoryManagerList();
+  document.getElementById('categoryModal').classList.add('on');
+}
+function closeCategoryManager(){ document.getElementById('categoryModal').classList.remove('on'); }
+async function addCategoryManual(){
+  const name = document.getElementById('cat_new_name').value.trim();
+  if(!name){ showToast('분류명을 입력해 주세요'); return; }
+  if(categories.some(c=>c.name===name)){ showToast('이미 있는 분류명입니다'); return; }
+  categories.push({ id:'cat_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), name, createdAt:new Date().toISOString() });
+  categories.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  await saveCategories();
+  document.getElementById('cat_new_name').value='';
+  renderCategoryManagerList();
+  renderCategoryFilterBar();
+  showToast('화도학 분류에 추가되었습니다: ' + name);
+}
+function renderCategoryManagerList(){
+  const list = categories.slice().sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  document.getElementById('categoryManagerList').innerHTML = list.length ? list.map(c=>`
+    <div class="cat-mgr-row">
+      <input type="text" value="${escapeHtml(c.name)}" onchange="renameCategory('${c.id}', this.value)">
+      <span class="cat-mgr-count">${categoryRecordCount(c.name)}건</span>
+      <button type="button" class="btn sm" onclick="deleteCategory('${c.id}')">삭제</button>
+    </div>`).join('') : `<span class="hint">등록된 분류가 없습니다. 위에서 새 분류를 추가해 보세요.</span>`;
+  document.getElementById('categoryCountHint').textContent = `총 ${categories.length}개 분류`;
+}
+async function renameCategory(id, newNameRaw){
+  const newName = (newNameRaw||'').trim();
+  const cat = categories.find(c=>c.id===id);
+  if(!cat) return;
+  if(!newName){ renderCategoryManagerList(); return; }
+  if(newName===cat.name) return;
+  if(categories.some(c=>c.id!==id && c.name===newName)){ showToast('이미 있는 분류명입니다'); renderCategoryManagerList(); return; }
+  const oldName = cat.name;
+  cat.name = newName;
+  records.forEach(r=>{
+    if(r.categories && r.categories.includes(oldName)){
+      r.categories = r.categories.map(n=>n===oldName ? newName : n);
+    }
+  });
+  await Promise.all([saveCategories(), saveRecords()]);
+  renderCategoryManagerList();
+  renderCategoryFilterBar();
+  showToast('분류명이 변경되었습니다: ' + oldName + ' → ' + newName);
+}
+async function deleteCategory(id){
+  const cat = categories.find(c=>c.id===id);
+  if(!cat) return;
+  const n = categoryRecordCount(cat.name);
+  if(!confirm(n>0 ? `'${cat.name}' 분류를 삭제할까요? 이미 등록된 자료 ${n}건에서도 이 분류가 함께 제거됩니다.` : `'${cat.name}' 분류를 삭제할까요?`)) return;
+  categories = categories.filter(c=>c.id!==id);
+  records.forEach(r=>{ if(r.categories) r.categories = r.categories.filter(name=>name!==cat.name); });
+  await Promise.all([saveCategories(), saveRecords()]);
+  renderCategoryManagerList();
+  renderCategoryFilterBar();
+  if(document.getElementById('formModal').classList.contains('on')) renderCategoryFieldChips();
 }
 
 /* ══════ 화도학 브랜딩: 핵심 키워드 랭킹·인증 배지 ══════ */
@@ -2442,6 +2620,11 @@ function renderCurate(){
       </div>
     </div>`).join('');
 
+  const catSel = document.getElementById('c_title_from_category');
+  if(catSel){
+    const catList = categories.slice().sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+    catSel.innerHTML = '<option value="">화도학 분류에서 선택…</option>' + catList.map(c=>`<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)}</option>`).join('');
+  }
   document.getElementById('collHeading').textContent = `플랫폼 단 구성 (${collections.length}/${COLLECTION_MAX}단)`;
   const atMax = collections.length >= COLLECTION_MAX;
   document.getElementById('btnNewSection').disabled = atMax;
