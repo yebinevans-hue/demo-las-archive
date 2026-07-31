@@ -265,6 +265,7 @@
   .mtab{padding:10px 14px;font-size:12.5px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent;}
   .mtab.on{color:var(--primary);border-bottom-color:var(--primary);}
   .modal-body{padding:0;overflow:auto;flex:1;}
+  .modal-body.mb-pad{padding:20px 22px;}
   .mpanel{display:none;}
   .mpanel.on{display:block;}
   .mpanel .file-drop, .mpanel .file-list, .mpanel .hint{margin:14px 18px 0;}
@@ -832,8 +833,12 @@
           <div class="field"><input type="text" id="f_url" placeholder="예: 유튜브 영상 주소, 신문기사 링크 등 디지털 원문 URL"></div>
           <label>지역 태그<span class="dc">Coverage</span></label>
           <div class="field"><input type="text" id="f_coverage" placeholder="예: 남양주시 화도읍 (쉼표 구분)"></div>
-          <label>주제 태그<span class="dc">Subject</span><button type="button" class="btn sm" style="margin-left:6px;" onclick="openThesaurus()">📖 화도학 용어집 바로가기</button><button type="button" class="btn sm" style="margin-left:6px;" onclick="openBrandingDashboard()">📊 화도학 브랜딩 대시보드</button></label>
+          <label>주제 태그<span class="dc">Subject</span></label>
           <div class="field" style="position:relative;display:block;">
+            <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
+              <button type="button" class="btn sm" onclick="openThesaurus()">📖 화도학 용어집 바로가기</button>
+              <button type="button" class="btn sm" onclick="openBrandingDashboard()">📊 화도학 브랜딩 대시보드</button>
+            </div>
             <div class="tag-input" id="subjectTagBox" onclick="document.getElementById('f_subject_text').focus()">
               <div id="subjectChips" style="display:contents;"></div>
               <input type="text" id="f_subject_text" class="tag-text" placeholder="주제어 입력 후 콤마(,)로 등록 · 최대 100개" autocomplete="off" oninput="onSubjectInput()" onkeydown="onSubjectKeydown(event)" onblur="setTimeout(hideSubjectSuggest,150)">
@@ -895,7 +900,7 @@
 <div class="modal-backdrop" id="alpasModal">
   <div class="modal" style="max-width:560px;">
     <div class="modal-head"><span>도서관 자료 반입</span><button class="modal-x" onclick="closeAlpasSearch()">✕</button></div>
-    <div class="modal-body">
+    <div class="modal-body mb-pad">
       <div class="search-bar" style="padding:0 0 12px;">
         <input type="text" id="alpasKw" placeholder="서명·저자·청구기호로 검색" oninput="renderAlpasResults()">
       </div>
@@ -1152,7 +1157,7 @@
       <span>프리미엄 콘텐츠 등록 (데모)</span>
       <button class="modal-x" onclick="closePremiumImport()">✕</button>
     </div>
-    <div class="modal-body">
+    <div class="modal-body mb-pad">
       <div class="hint" style="margin-bottom:10px;display:block;">실제 서비스에서는 이씨오 콘텐츠사업부가 외부에서 등록하지만, 데모에서는 파일을 직접 불러와 바로 등록해볼 수 있습니다.</div>
       <div class="brow"><label>카테고리</label><select id="pi_cat"></select></div>
       <div class="brow"><label>콘텐츠명</label><input type="text" id="pi_title" placeholder="콘텐츠명을 입력하세요"></div>
@@ -1176,7 +1181,7 @@
       <span id="ppTitle">콘텐츠 미리보기</span>
       <button class="modal-x" onclick="closePremiumPreview()">✕</button>
     </div>
-    <div class="modal-body" id="ppBody"></div>
+    <div class="modal-body mb-pad" id="ppBody"></div>
     <div class="modal-foot">
       <span class="hint" id="ppMeta"></span>
       <div><button type="button" class="btn primary" onclick="closePremiumPreview()">닫기</button></div>
@@ -1191,7 +1196,7 @@
       <span id="dpTitle">기증자 프로필</span>
       <button class="modal-x" onclick="closeDonorProfile()">✕</button>
     </div>
-    <div class="modal-body">
+    <div class="modal-body mb-pad">
       <div class="hint" style="margin-bottom:10px;display:block;">기증 자료의 '기증자' 항목을 기준으로 연락처·주소·기증동의 범위 등을 별도로 관리합니다.</div>
       <div class="brow"><label>기증자명</label><input type="text" id="dp_name" readonly style="background:var(--bg-app);"></div>
       <div class="brow"><label>연락처</label><input type="text" id="dp_phone" placeholder="010-0000-0000"></div>
@@ -1222,7 +1227,7 @@
       <span>지역학 콘텐츠 제작 요청</span>
       <button class="modal-x" onclick="closeContentOrder()">✕</button>
     </div>
-    <div class="modal-body">
+    <div class="modal-body mb-pad">
       <div class="hint" style="display:block;margin-bottom:12px;">실제 서비스에서는 알라딘 등 외부 도서 검색 API를 연동하지만, 데모에서는 도서관이 보유한 목록에서 참고 도서를 선택합니다.</div>
 
       <div class="brow"><label>도서 검색</label><input type="text" id="ord_book_search" placeholder="책 제목 또는 저자로 검색" oninput="renderOrderBookResults()"></div>
@@ -1261,7 +1266,7 @@
       <span>화도학 용어집 (지역 특화 시소러스)</span>
       <button class="modal-x" onclick="closeThesaurus()">✕</button>
     </div>
-    <div class="modal-body">
+    <div class="modal-body mb-pad">
       <div class="hint" style="display:block;margin-bottom:10px;">사서가 주제어를 입력할 때마다 자동으로 쌓이는 용어 목록입니다. 여기서 직접 추가·수정·삭제할 수도 있고, 자료 등록 화면의 주제 태그 입력 시 초성 검색으로 바로 추천됩니다. 사용 횟수가 일정 기준 이상인 용어에는 🏅 배지가 붙어 플랫폼 미리보기의 '화도학 브랜드 키워드'에도 노출됩니다.</div>
       <div id="thTopKeywords" class="brand-section" style="margin-bottom:16px;"></div>
       <div class="brow"><label>새 용어 추가</label><input type="text" id="th_new_term" placeholder="용어를 입력하세요" oninput="renderThesaurusSimilar()"></div>
@@ -1285,7 +1290,7 @@
       <span>화도학 브랜딩 대시보드</span>
       <button class="modal-x" onclick="closeBrandingDashboard()">✕</button>
     </div>
-    <div class="modal-body" id="brandDashboardBody"></div>
+    <div class="modal-body mb-pad" id="brandDashboardBody"></div>
     <div class="modal-foot">
       <span class="hint">축적된 등록 자료·용어 데이터를 지역 브랜딩 산출물로 자동 변환해 보여줍니다</span>
       <div><button type="button" class="btn primary" onclick="closeBrandingDashboard()">닫기</button></div>
@@ -1300,7 +1305,7 @@
       <span id="hubTitle">주제 허브</span>
       <button class="modal-x" onclick="closeTopicHub()">✕</button>
     </div>
-    <div class="modal-body" id="hubBody"></div>
+    <div class="modal-body mb-pad" id="hubBody"></div>
     <div class="modal-foot">
       <span class="hint">해당 주제어가 붙은 자료·컬렉션을 모아 보여줍니다</span>
       <div><button type="button" class="btn primary" onclick="closeTopicHub()">닫기</button></div>
