@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<title>alpas | 화도도서관</title>
+<title>alpas | 이석영뉴미디어도서관</title>
 <style>
   :root{
     --navy:#2B2740; --topbar:#372F4C; --rail:#2F2A44;
@@ -225,6 +225,22 @@
   .cat-filter-chip:hover{border-color:var(--primary);}
   .cat-filter-chip.on{background:var(--primary-tint);border-color:var(--primary);color:var(--primary);}
 
+  /* 기존 자료 반입(LAS 연계) 마법사 */
+  .las-steps{display:flex;gap:8px;margin-bottom:16px;}
+  .las-step{flex:1;text-align:center;padding:8px 6px;border-radius:6px;background:#F2F4F7;color:var(--muted);font-size:12.5px;font-weight:700;}
+  .las-step.on{background:var(--primary);color:#fff;}
+  .las-step.done{background:var(--primary-tint);color:var(--primary);}
+  .las-drop{border:2px dashed var(--line);border-radius:8px;padding:32px 16px;text-align:center;color:var(--muted);cursor:pointer;font-size:13px;}
+  .las-drop:hover{border-color:var(--primary);color:var(--primary);}
+  .las-map-table{width:100%;border-collapse:collapse;}
+  .las-map-table th{text-align:left;font-size:11.5px;color:var(--muted);padding:4px 8px;border-bottom:1px solid var(--line);}
+  .las-map-table td{padding:6px 8px;border-bottom:1px solid var(--line);font-size:12.5px;vertical-align:middle;}
+  .las-map-table select{width:100%;padding:5px 6px;border:1px solid var(--line);border-radius:4px;font-size:12.5px;}
+  .las-preview-wrap{max-height:320px;overflow:auto;border:1px solid var(--line);border-radius:6px;}
+  .las-preview-wrap table{width:100%;border-collapse:collapse;font-size:12px;}
+  .las-preview-wrap th{position:sticky;top:0;background:#F7F5FC;text-align:left;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap;}
+  .las-preview-wrap td{padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap;max-width:180px;overflow:hidden;text-overflow:ellipsis;}
+
   /* 발행 화면 */
   .pub-toolbar{display:flex;gap:8px;padding:14px;border-bottom:1px solid var(--line);align-items:center;}
   .count-chip{margin-left:auto;font-size:12px;color:var(--muted);}
@@ -393,7 +409,10 @@
   .pfv-site-topbar{display:flex;justify-content:space-between;align-items:center;padding:6px 20px;font-size:11px;color:var(--muted);border-bottom:1px solid var(--line);background:#fff;}
   .pfv-site-topbar-links span{margin:0 4px;}
   .pfv-site-brand{display:flex;align-items:center;gap:20px;padding:14px 20px;border-bottom:1px solid var(--line);background:#fff;}
-  .pfv-site-logo{font-size:16px;font-weight:800;color:#3a4a1e;display:flex;align-items:center;gap:6px;white-space:nowrap;}
+  .pfv-site-logo{font-size:16px;font-weight:800;color:#3a4a1e;display:flex;align-items:center;gap:8px;white-space:nowrap;}
+  .pfv-logo-mark{width:26px;height:26px;border-radius:6px;background:#3a4a1e;flex-shrink:0;}
+  .pfv-logo-text{display:flex;flex-direction:column;line-height:1.25;}
+  .pfv-logo-sub{font-size:10px;font-weight:600;color:var(--faint);}
   .pfv-site-search{flex:1;max-width:420px;}
   .pfv-site-search input{width:100%;border:1px solid var(--line);border-radius:20px;padding:8px 14px;font-size:12.5px;background:#F7F9FB;}
   .pfv-site-nav{display:flex;gap:20px;padding:11px 20px;border-bottom:1px solid var(--line);font-size:12.5px;font-weight:600;color:#444;flex-wrap:wrap;background:#fff;}
@@ -504,7 +523,7 @@
   .th-term-btn{background:none;border:none;padding:0;font:inherit;color:inherit;cursor:pointer;text-decoration:underline dotted;text-underline-offset:2px;}
   .th-badge{font-size:9px;margin-left:2px;}
 
-  /* 화도학 브랜딩 대시보드 */
+  /* 지역 가치 발견 */
   .brand-section{margin-bottom:20px;}
   .brand-section-title{font-size:13px;font-weight:800;color:var(--primary);margin-bottom:8px;}
   .brand-section-desc{font-size:11.5px;color:var(--muted);margin-bottom:10px;}
@@ -591,8 +610,8 @@
 <div class="view on" id="view-dashboard">
   <div class="db-topbar">
     <div class="db-logo">alpas</div>
-    <div class="db-libname">화도도서관(plus)</div>
-    <select class="db-sel"><option>MA | 화도도서관</option></select>
+    <div class="db-libname">이석영뉴미디어도서관(plus)</div>
+    <select class="db-sel"><option>MA | 이석영뉴미디어도서관</option></select>
     <div class="db-spacer"></div>
     <div class="db-icons">
       <span class="tel">문의 : 1599-5478</span>
@@ -652,7 +671,7 @@
             <ul><li>[긴급 공지] 알라딘 Open API 사용자 인증 절차 도입 안내</li><li>테스트 자료 안내</li><li>고객센터 운영 관련 공지</li></ul>
           </div>
           <div class="db-notice"><h3>도서관 공지사항 +</h3>
-            <ul><li>화도도서관 청구기호 안내</li><li>매주 2·4 월요일은 휴관일입니다</li></ul>
+            <ul><li>이석영뉴미디어도서관 청구기호 안내</li><li>매주 2·4 월요일은 휴관일입니다</li></ul>
           </div>
         </div>
       </div>
@@ -692,7 +711,7 @@
 <div class="view" id="view-menu">
   <div class="menu-topbar">
     <div class="db-logo">alpas</div>
-    <div class="db-libname" style="color:#C7C0DA;font-weight:400;">화도도서관(plus)</div>
+    <div class="db-libname" style="color:#C7C0DA;font-weight:400;">이석영뉴미디어도서관(plus)</div>
     <button class="menu-close" onclick="closeMenu()">✕</button>
   </div>
   <div class="menu-tabs">
@@ -732,6 +751,10 @@
     <div class="menu-col">
       <h4>발행</h4>
       <div class="menu-item live" onclick="openPublish()"><span class="chev">›</span>플랫폼 게시관리</div>
+    </div>
+    <div class="menu-col">
+      <h4>연계반입</h4>
+      <div class="menu-item live" onclick="openLasImport()"><span class="chev">›</span>기존 자료 반입 (LAS 연계)</div>
     </div>
   </div>
 
@@ -801,9 +824,10 @@
         <button class="btn" id="btnInspect" onclick="startInspection()" style="display:none;" disabled>검수 시작</button>
         <button class="btn" id="btnHandover" onclick="handoverSelected()" style="display:none;" disabled>등록인계</button>
         <button class="btn" onclick="exportExcel()">출력</button>
-        <button class="btn" onclick="openCategoryManager()">🏷 화도학 분류 관리</button>
-        <button class="btn" onclick="openThesaurus()">📖 화도학 용어집</button>
-        <button class="btn" onclick="openBrandingDashboard()">📊 화도학 브랜딩 대시보드</button>
+        <button class="btn" onclick="openCategoryManager()">화도학 분류 관리</button>
+        <button class="btn" onclick="openThesaurus()">화도학 용어집</button>
+        <button class="btn" onclick="openBrandingDashboard()">지역 가치 발견</button>
+        <button class="btn" onclick="openLasImport()">기존 자료 반입</button>
         <span class="toolbar-hint">선택 후 수정·삭제·검수 시작·등록인계를 사용할 수 있습니다</span>
       </div>
 
@@ -880,8 +904,8 @@
           <label>주제 태그<span class="dc">Subject</span></label>
           <div class="field" style="position:relative;display:block;">
             <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
-              <button type="button" class="btn sm" onclick="openThesaurus()">📖 화도학 용어집 바로가기</button>
-              <button type="button" class="btn sm" onclick="openBrandingDashboard()">📊 화도학 브랜딩 대시보드</button>
+              <button type="button" class="btn sm" onclick="openThesaurus()">화도학 용어집 바로가기</button>
+              <button type="button" class="btn sm" onclick="openBrandingDashboard()">지역 가치 발견</button>
             </div>
             <div class="tag-input" id="subjectTagBox" onclick="document.getElementById('f_subject_text').focus()">
               <div id="subjectChips" style="display:contents;"></div>
@@ -893,7 +917,7 @@
           <label>화도학 분류<span class="dc">Category</span></label>
           <div class="field" style="display:block;">
             <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
-              <button type="button" class="btn sm" onclick="openCategoryManager()">🏷 분류 추가·수정·삭제</button>
+              <button type="button" class="btn sm" onclick="openCategoryManager()">분류 추가·수정·삭제</button>
             </div>
             <div class="cat-chip-picker" id="categoryFieldChips"></div>
             <div class="hint" style="margin-top:4px;">이 도서관만의 갈래(예: 이석영, 음악, 화도읍 생활상)로 중복 선택할 수 있습니다. 새 분류는 위 버튼으로 먼저 만들어 주세요.</div>
@@ -1182,7 +1206,10 @@
           <div class="pfv-site-topbar-links"><span>로그인</span><span>|</span><span>회원가입</span><span>|</span><span>사이트맵</span></div>
         </div>
         <div class="pfv-site-brand">
-          <div class="pfv-site-logo">🏛 <b>화도도서관</b></div>
+          <div class="pfv-site-logo">
+            <div class="pfv-logo-mark"></div>
+            <div class="pfv-logo-text"><span class="pfv-logo-sub">남양주시</span><b>이석영뉴미디어도서관</b></div>
+          </div>
           <div class="pfv-site-search"><input type="text" placeholder="도서명 또는 저자명 입력" disabled></div>
         </div>
         <div class="pfv-site-nav">
@@ -1194,7 +1221,7 @@
             <span><span>개인정보처리방침</span><span>이용약관</span><span>이메일무단수집거부</span></span>
             <span class="pfv-footer-related">관련사이트 바로가기 ▾</span>
           </div>
-          <div class="pfv-footer-brand"><b>화도도서관</b><span>경기도 남양주시 화도읍 수레로1260번길 33 · TEL : 031-590-4587</span></div>
+          <div class="pfv-footer-brand"><div class="pfv-logo-mark" style="width:20px;height:20px;"></div><span>남양주시 도서관사업소</span><b>이석영뉴미디어도서관</b><span>경기도 남양주시 화도읍 맷돌로 84 · TEL : 031-595-8390</span></div>
           <div class="pfv-footer-copy">Copyright ⓒ 남양주시 도서관사업소. ALL RIGHTS RESERVED.</div>
         </div>
       </div>
@@ -1323,7 +1350,7 @@
       <button class="modal-x" onclick="closeThesaurus()">✕</button>
     </div>
     <div class="modal-body mb-pad">
-      <div class="hint" style="display:block;margin-bottom:10px;">사서가 주제어를 입력할 때마다 자동으로 쌓이는 용어 목록입니다. 여기서 직접 추가·수정·삭제할 수도 있고, 자료 등록 화면의 주제 태그 입력 시 초성 검색으로 바로 추천됩니다. 사용 횟수가 일정 기준 이상인 용어에는 🏅 배지가 붙어 플랫폼 미리보기의 '화도학 브랜드 키워드'에도 노출됩니다.</div>
+      <div class="hint" style="display:block;margin-bottom:10px;">사서가 주제어를 입력할 때마다 자동으로 쌓이는 용어 목록입니다. 여기서 직접 추가·수정·삭제할 수도 있고, 자료 등록 화면의 주제 태그 입력 시 초성 검색으로 바로 추천됩니다. 사용 횟수가 일정 기준 이상인 용어에는 배지가 붙어 플랫폼 미리보기의 '화도학 브랜드 키워드'에도 노출됩니다.</div>
       <div id="thTopKeywords" class="brand-section" style="margin-bottom:16px;"></div>
       <div class="brow"><label>새 용어 추가</label><input type="text" id="th_new_term" placeholder="용어를 입력하세요" oninput="renderThesaurusSimilar()"></div>
       <div id="thSimilar" class="ord-book-results" style="display:none;"></div>
@@ -1359,17 +1386,32 @@
   </div>
 </div>
 
-<!-- 화도학 브랜딩 대시보드 -->
+<!-- 지역 가치 발견 -->
 <div class="modal-backdrop" id="brandingDashboardModal">
   <div class="modal" style="max-width:680px;max-height:90vh;">
     <div class="modal-head">
-      <span>화도학 브랜딩 대시보드</span>
+      <span>지역 가치 발견</span>
       <button class="modal-x" onclick="closeBrandingDashboard()">✕</button>
     </div>
     <div class="modal-body mb-pad" id="brandDashboardBody"></div>
     <div class="modal-foot">
       <span class="hint">축적된 등록 자료·용어 데이터를 지역 브랜딩 산출물로 자동 변환해 보여줍니다</span>
       <div><button type="button" class="btn primary" onclick="closeBrandingDashboard()">닫기</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- 기존 자료 반입 (LAS 연계) -->
+<div class="modal-backdrop" id="lasImportModal">
+  <div class="modal" style="max-width:820px;max-height:90vh;">
+    <div class="modal-head">
+      <span>기존 자료 반입 (LAS 연계)</span>
+      <button class="modal-x" onclick="closeLasImport()">✕</button>
+    </div>
+    <div class="modal-body mb-pad" id="lasImportBody"></div>
+    <div class="modal-foot">
+      <span class="hint" id="lasImportHint">LAS(도서관자료관리시스템)에 이미 등록된 기증·민간자료를 CSV로 내보내 이 시스템 필드에 매핑한 뒤 반입합니다</span>
+      <div id="lasImportFootBtns"></div>
     </div>
   </div>
 </div>
@@ -1407,6 +1449,24 @@ let categories = []; // 화도학 분류(카테고리): {id, name, createdAt} �
 let categoryTags = []; // 등록/수정 폼에서 현재 선택 중인 분류명 목록
 let activeCategoryFilter = null; // 목록 화면에서 선택된 분류 필터(null=전체)
 let currentAcq = '등록';
+/* 기존 자료 반입(LAS 연계): CSV 업로드 → 필드 매핑 → 미리보기 → 반입 3단계 마법사 상태 */
+let lasImportStep = 1;
+let lasImportHeaders = [];
+let lasImportRows = []; // 헤더를 제외한 데이터 행들 (문자열 배열의 배열)
+let lasImportMapping = {}; // { fieldKey: 헤더 인덱스 }
+let lasImportFileName = '';
+const LAS_IMPORT_FIELDS = [
+  { key:'title', label:'자료명', required:true },
+  { key:'type', label:'자료유형' },
+  { key:'creator', label:'생산자' },
+  { key:'prodDate', label:'생산일자' },
+  { key:'collectDate', label:'수집일자' },
+  { key:'desc', label:'설명' },
+  { key:'coverage', label:'지역 태그' },
+  { key:'subject', label:'주제 태그 (콤마 구분)' },
+  { key:'rights', label:'공개범위 (공개/부분공개/비공개)' },
+  { key:'lasNo', label:'LAS 원 등록번호 · 청구기호' },
+];
 /* 데모 전제: 도서관에 이미 등록번호가 수만 건 쌓여 있다고 가정하고, 그 다음 빈 번호부터
    자동 채번되는 것처럼 보이도록 초기 카운터를 크게 잡아둔다. 실제 연동 시에는 이 초기값을
    도서관 등록대장의 마지막 채번 값으로 교체하면 된다. */
@@ -2232,12 +2292,12 @@ function renderThesaurusList(){
         ${groups[g].map(t=>`
           <span class="ord-book-chip" style="background:var(--amber-tint);color:var(--amber);">
             <button type="button" class="th-term-btn" onclick="openTopicHub('${escapeHtml(t.term).replace(/'/g,"\\'")}')">${escapeHtml(t.term)}</button>
-            <span style="opacity:.7;">(${t.useCount})</span>${t.useCount>=BRAND_BADGE_THRESHOLD ? '<span class="th-badge" title="화도학 특화 키워드">🏅</span>' : ''}
+            <span style="opacity:.7;">(${t.useCount})</span>${t.useCount>=BRAND_BADGE_THRESHOLD ? '<span class="th-badge" title="화도학 특화 키워드">특화</span>' : ''}
             <span class="x" onclick="deleteThesaurusTerm('${t.id}')">✕</span>
           </span>`).join('')}
       </div>
     </div>`).join('') : `<span class="hint">등록된 용어가 없습니다</span>`;
-  document.getElementById('thCountHint').textContent = `총 ${thesaurusTerms.length}개 용어 · 가나다(초성)순 정렬 · 🏅 사용 ${BRAND_BADGE_THRESHOLD}회 이상 특화 키워드`;
+  document.getElementById('thCountHint').textContent = `총 ${thesaurusTerms.length}개 용어 · 가나다(초성)순 정렬 · 사용 ${BRAND_BADGE_THRESHOLD}회 이상 특화 키워드`;
   renderThTopKeywords();
 }
 async function deleteThesaurusTerm(id){
@@ -2313,6 +2373,160 @@ async function deleteCategory(id){
   if(document.getElementById('formModal').classList.contains('on')) renderCategoryFieldChips();
 }
 
+/* ══════ 기존 자료 반입(LAS 연계): LAS에서 내보낸 CSV를 이 시스템 DC 필드에 매핑해 반입 ══════
+   실제 연동 시에는 LAS가 OAI-PMH(oai_dc)나 MARC21을 제공하면 그 크로스워크를 그대로 쓰면 되고,
+   여기서는 가장 흔한 현실적 경로인 'CSV 내보내기 + 필드 매핑'을 데모로 구현한다. */
+function openLasImport(){
+  lasImportStep = 1;
+  lasImportHeaders = [];
+  lasImportRows = [];
+  lasImportMapping = {};
+  lasImportFileName = '';
+  renderLasImportStep();
+  document.getElementById('lasImportModal').classList.add('on');
+}
+function closeLasImport(){ document.getElementById('lasImportModal').classList.remove('on'); }
+
+/* 간단한 CSV 파서: 큰따옴표로 감싼 필드 안의 콤마·줄바꿈도 처리한다 */
+function parseCsvText(text){
+  const rows = [];
+  let row = [], field = '', inQuotes = false;
+  for(let i=0;i<text.length;i++){
+    const c = text[i], next = text[i+1];
+    if(inQuotes){
+      if(c === '"'){ if(next === '"'){ field += '"'; i++; } else { inQuotes = false; } }
+      else field += c;
+    } else {
+      if(c === '"') inQuotes = true;
+      else if(c === ','){ row.push(field); field=''; }
+      else if(c === '\n'){ row.push(field); rows.push(row); row=[]; field=''; }
+      else if(c === '\r'){ /* skip */ }
+      else field += c;
+    }
+  }
+  if(field.length || row.length){ row.push(field); rows.push(row); }
+  while(rows.length && rows[rows.length-1].every(f=>f.trim()==='')) rows.pop();
+  return rows;
+}
+function handleLasCsvFile(file){
+  if(!file) return;
+  lasImportFileName = file.name;
+  const reader = new FileReader();
+  reader.onload = (e)=>{
+    const parsed = parseCsvText(String(e.target.result||''));
+    if(parsed.length < 2){ showToast('CSV에서 헤더와 데이터 행을 찾을 수 없습니다'); return; }
+    lasImportHeaders = parsed[0].map(h=>h.trim());
+    lasImportRows = parsed.slice(1).filter(r=>r.some(f=>f.trim()!==''));
+    lasImportMapping = {};
+    // 헤더명이 필드 라벨과 비슷하면 자동으로 미리 매핑해준다
+    LAS_IMPORT_FIELDS.forEach(f=>{
+      const idx = lasImportHeaders.findIndex(h=>h.replace(/\s/g,'')===f.label.replace(/\s|\(.*\)/g,''));
+      if(idx>-1) lasImportMapping[f.key] = idx;
+    });
+    lasImportStep = 2;
+    renderLasImportStep();
+  };
+  reader.readAsText(file, 'utf-8');
+}
+function setLasMapping(fieldKey, idxStr){
+  const idx = idxStr === '' ? undefined : parseInt(idxStr,10);
+  if(idx===undefined) delete lasImportMapping[fieldKey]; else lasImportMapping[fieldKey] = idx;
+}
+function lasGet(row, key){
+  const idx = lasImportMapping[key];
+  return (idx!==undefined && row[idx]!==undefined) ? row[idx].trim() : '';
+}
+const LAS_ALLOWED_TYPES = ['문서(신문·잡지·전단 등)','도면·지도','사진','영상','오디오·구술채록','실물','기타'];
+const LAS_ALLOWED_RIGHTS = ['공개','부분공개','비공개'];
+function mapLasRow(row){
+  const rawType = lasGet(row,'type');
+  const type = LAS_ALLOWED_TYPES.includes(rawType) ? rawType : '기타';
+  const rawRights = lasGet(row,'rights');
+  const rights = LAS_ALLOWED_RIGHTS.includes(rawRights) ? rawRights : '공개';
+  const lasNo = lasGet(row,'lasNo');
+  const title = lasGet(row,'title') || '(제목 없음)';
+  const creator = lasGet(row,'creator');
+  return {
+    id: 'rec_'+Date.now()+'_'+Math.random().toString(36).slice(2,7),
+    acquisition:'기증', title, type, creator, contributor:creator,
+    prodDate: lasGet(row,'prodDate'), collectDate: lasGet(row,'collectDate'),
+    desc: lasGet(row,'desc'), coverage: lasGet(row,'coverage'), subject: lasGet(row,'subject'),
+    categories: [], rights,
+    source: lasNo ? `LAS 반입 · 원 등록번호/청구기호: ${lasNo}` : 'LAS 반입',
+    sourceUrl:'', alpasList:[], receiptNo:'', files:[],
+    status:'접수중', regNo:'', published:false, createdAt:new Date().toISOString()
+  };
+}
+function goLasImportStep(step){
+  if(step===3 && lasImportMapping['title']===undefined){ showToast('자료명 필드는 반드시 매핑해야 합니다'); return; }
+  lasImportStep = step;
+  renderLasImportStep();
+}
+async function runLasImport(){
+  const mapped = lasImportRows.map(mapLasRow);
+  records = mapped.concat(records);
+  await saveRecords();
+  document.getElementById('lasImportHint').textContent = `${mapped.length}건이 '기증' 목록의 접수중 상태로 반입되었습니다`;
+  showToast(`LAS에서 ${mapped.length}건을 반입했습니다 — 기증 목록에서 화도학 분류·주제 태그를 채운 뒤 등록완료로 진행해 주세요`);
+  closeLasImport();
+  if(document.getElementById('view-form').classList.contains('on')){ currentAcq='기증'; openForm('기증'); }
+}
+function renderLasImportStep(){
+  const stepLabels = ['CSV 업로드','필드 매핑','미리보기 · 반입'];
+  const stepsHtml = `<div class="las-steps">` + stepLabels.map((l,i)=>{
+    const n = i+1;
+    const cls = n===lasImportStep ? 'on' : (n<lasImportStep ? 'done' : '');
+    return `<div class="las-step ${cls}">${n}. ${l}</div>`;
+  }).join('') + `</div>`;
+
+  const body = document.getElementById('lasImportBody');
+  const footBtns = document.getElementById('lasImportFootBtns');
+
+  if(lasImportStep===1){
+    body.innerHTML = stepsHtml + `
+      <div class="hint" style="display:block;margin-bottom:14px;">LAS(도서관자료관리시스템)에서 기증·민간자료 목록을 CSV로 내보낸 뒤 여기에 업로드하세요. 첫 행은 컬럼명(헤더)이어야 합니다.</div>
+      <div class="las-drop" onclick="document.getElementById('lasCsvFile').click()">클릭하여 CSV 파일 선택 (또는 드래그하여 놓기)</div>
+      <input type="file" id="lasCsvFile" accept=".csv,text/csv" style="display:none" onchange="handleLasCsvFile(this.files[0]); this.value='';">`;
+    footBtns.innerHTML = `<button type="button" class="btn" onclick="closeLasImport()">취소</button>`;
+  } else if(lasImportStep===2){
+    body.innerHTML = stepsHtml + `
+      <div class="hint" style="display:block;margin-bottom:10px;"><b>${escapeHtml(lasImportFileName)}</b> · 데이터 ${lasImportRows.length}행을 찾았습니다. 각 항목이 CSV의 어느 열에 해당하는지 선택해 주세요.</div>
+      <table class="las-map-table">
+        <thead><tr><th style="width:34%">이 시스템 필드</th><th>LAS(CSV) 컬럼</th></tr></thead>
+        <tbody>
+          ${LAS_IMPORT_FIELDS.map(f=>`
+            <tr>
+              <td>${escapeHtml(f.label)}${f.required?' <span class="req">*</span>':''}</td>
+              <td>
+                <select onchange="setLasMapping('${f.key}', this.value)">
+                  <option value="">매핑 안 함</option>
+                  ${lasImportHeaders.map((h,i)=>`<option value="${i}" ${lasImportMapping[f.key]===i?'selected':''}>${escapeHtml(h)}</option>`).join('')}
+                </select>
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+    footBtns.innerHTML = `
+      <button type="button" class="btn" onclick="goLasImportStep(1)">이전</button>
+      <button type="button" class="btn primary" onclick="goLasImportStep(3)">다음 · 미리보기</button>`;
+  } else {
+    const previewRows = lasImportRows.slice(0,5).map(mapLasRow);
+    body.innerHTML = stepsHtml + `
+      <div class="hint" style="display:block;margin-bottom:10px;">전체 ${lasImportRows.length}건 중 앞 5건 미리보기입니다. 반입되는 자료는 모두 <b>기증 · 접수중</b> 상태로 들어가며, 원 LAS 등록번호는 '출처' 항목에 보존됩니다. 화도학 분류·주제 태그는 반입 후 목록에서 자료별로 채워 넣어 주세요.</div>
+      <div class="las-preview-wrap">
+        <table>
+          <thead><tr><th>자료명</th><th>자료유형</th><th>생산자</th><th>공개범위</th><th>출처(LAS)</th></tr></thead>
+          <tbody>
+            ${previewRows.map(r=>`<tr><td>${escapeHtml(r.title)}</td><td>${escapeHtml(r.type)}</td><td>${escapeHtml(r.creator||'—')}</td><td>${escapeHtml(r.rights)}</td><td>${escapeHtml(r.source)}</td></tr>`).join('')}
+          </tbody>
+        </table>
+      </div>`;
+    footBtns.innerHTML = `
+      <button type="button" class="btn" onclick="goLasImportStep(2)">이전</button>
+      <button type="button" class="btn primary" onclick="runLasImport()">${lasImportRows.length}건 반입하기</button>`;
+  }
+}
+
 /* ══════ 화도학 브랜딩: 핵심 키워드 랭킹·인증 배지 ══════ */
 const BRAND_BADGE_THRESHOLD = 3;
 function topKeywords(n){
@@ -2324,7 +2538,7 @@ function renderKeywordRankingHtml(list){
   return list.map((t,i)=>`
     <div class="brand-rank-row">
       <div class="brand-rank-no">${i+1}</div>
-      <button type="button" class="th-term-btn brand-rank-name" onclick="openTopicHub('${escapeHtml(t.term).replace(/'/g,"\\'")}')">${escapeHtml(t.term)}${t.useCount>=BRAND_BADGE_THRESHOLD ? ' <span class="th-badge" title="화도학 특화 키워드">🏅</span>' : ''}</button>
+      <button type="button" class="th-term-btn brand-rank-name" onclick="openTopicHub('${escapeHtml(t.term).replace(/'/g,"\\'")}')">${escapeHtml(t.term)}${t.useCount>=BRAND_BADGE_THRESHOLD ? ' <span class="th-badge" title="화도학 특화 키워드">특화</span>' : ''}</button>
       <div class="brand-rank-bar-wrap"><div class="brand-rank-bar" style="width:${Math.round((t.useCount||0)/max*100)}%;"></div></div>
       <div class="brand-rank-count">${t.useCount||0}회</div>
     </div>`).join('');
@@ -2333,7 +2547,7 @@ function renderThTopKeywords(){
   const el = document.getElementById('thTopKeywords');
   if(!el) return;
   const top = topKeywords(5);
-  el.innerHTML = `<div class="brand-section-title">🏅 화도학 핵심 키워드 TOP 5</div>` + renderKeywordRankingHtml(top);
+  el.innerHTML = `<div class="brand-section-title">화도학 핵심 키워드 TOP 5</div>` + renderKeywordRankingHtml(top);
 }
 
 /* ══════ 주제 허브: 용어 클릭 시 관련 자료 모아보기 ══════ */
@@ -2356,11 +2570,11 @@ function openTopicHub(term){
   const matchedIds = new Set(matched.map(r=>r.id));
   const matchedCollections = collections.filter(c=>(c.itemIds||[]).some(id=>matchedIds.has(id)));
   const cooc = coOccurringTerms(term, 8);
-  document.getElementById('hubTitle').textContent = `📍 ${term} 주제 허브`;
+  document.getElementById('hubTitle').textContent = `${term} 주제 허브`;
   document.getElementById('hubBody').innerHTML = `
     <div class="hub-head-badge">
       <span class="hint" style="margin:0;">사용 ${t ? t.useCount : matched.length}회</span>
-      ${t && t.useCount>=BRAND_BADGE_THRESHOLD ? `<span class="brand-badge-pill">🏅 화도학 특화 키워드</span>` : ''}
+      ${t && t.useCount>=BRAND_BADGE_THRESHOLD ? `<span class="brand-badge-pill">화도학 특화 키워드</span>` : ''}
     </div>
     <div class="brand-section">
       <div class="brand-section-title">연관 자료 (${matched.length}건)</div>
@@ -2423,22 +2637,22 @@ function openBrandingDashboard(){
   const pairs = allCooccurrencePairs(8);
   document.getElementById('brandDashboardBody').innerHTML = `
     <div class="brand-section">
-      <div class="brand-section-title">🏅 화도학 핵심 키워드 TOP 10</div>
+      <div class="brand-section-title">이석영뉴미디어도서관 브랜딩 키워드 TOP 10</div>
       <div class="brand-section-desc">사서가 자료를 등록할 때마다 자동으로 쌓인 주제어 사용 빈도입니다. 도서관이 실제로 강점을 가진 지역 주제가 무엇인지 그대로 드러납니다.</div>
       ${renderKeywordRankingHtml(topKeywords(10))}
     </div>
     <div class="brand-section">
-      <div class="brand-section-title">📈 연도별 등록 자료 성장</div>
+      <div class="brand-section-title">연도별 등록 자료 성장</div>
       <div class="brand-section-desc">지역학 자료·기증 자료가 연도별로 얼마나 쌓여왔는지 보여주는 성장 지표입니다.</div>
       ${renderBarChartHtml(recordYearData)}
     </div>
     <div class="brand-section">
-      <div class="brand-section-title">📈 화도학 용어집 누적 추이</div>
+      <div class="brand-section-title">화도학 용어집 누적 추이</div>
       <div class="brand-section-desc">지역 특화 시소러스(용어집)가 연도별로 얼마나 확장되어 왔는지 보여줍니다.</div>
       ${renderBarChartHtml(termYearData)}
     </div>
     <div class="brand-section">
-      <div class="brand-section-title">🕸 화도학 키워드 연관망</div>
+      <div class="brand-section-title">화도학 키워드 연관망</div>
       <div class="brand-section-desc">한 자료에 함께 태깅된 주제어 조합입니다. 자주 등장하는 조합일수록 지역 정체성을 이루는 핵심 스토리 라인입니다.</div>
       ${pairs.length ? pairs.map(([pair,cnt])=>`<div class="brand-cooc-row"><span class="brand-cooc-main">${escapeHtml(pair)}</span><span class="brand-cooc-chip">${cnt}건 동시 등장</span></div>`).join('')
         : `<span class="hint">아직 한 자료에 2개 이상의 주제어가 함께 태깅된 사례가 없습니다</span>`}
@@ -2966,12 +3180,12 @@ function renderBrandKeywordStripHtml(){
       <div class="pfv-section-head">
         <div>
           <span class="tag">${escapeHtml(settings.localStudyName || '지역학')} 브랜드 키워드</span>
-          <h4>🏅 ${escapeHtml(settings.localStudyName || '지역학')}이(가) 가장 많이 다룬 주제</h4>
+          <h4>${escapeHtml(settings.localStudyName || '지역학')}이(가) 가장 많이 다룬 주제</h4>
           <p>사서가 자료를 등록할 때마다 자동으로 쌓인 주제어 순위입니다. 이 도서관이 지역에서 어떤 이야기를 가장 깊이 축적해왔는지를 보여줍니다.</p>
         </div>
       </div>
       <div class="pfv-section-body" style="display:flex;flex-wrap:wrap;gap:8px;">
-        ${top.map(t=>`<span class="brand-badge-pill" style="${t.useCount>=BRAND_BADGE_THRESHOLD?'':'background:var(--bg-app);color:var(--ink);'}">${t.useCount>=BRAND_BADGE_THRESHOLD?'🏅 ':''}${escapeHtml(t.term)} (${t.useCount})</span>`).join('')}
+        ${top.map(t=>`<span class="brand-badge-pill" style="${t.useCount>=BRAND_BADGE_THRESHOLD?'':'background:var(--bg-app);color:var(--ink);'}">${escapeHtml(t.term)} (${t.useCount})</span>`).join('')}
       </div>
     </div>`;
 }
