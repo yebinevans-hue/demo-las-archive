@@ -175,7 +175,10 @@
     padding:11px 14px;font-size:12.5px;font-weight:600;color:#424E5C;display:flex;align-items:flex-start;gap:4px;
   }
   .form-grid label .req{color:var(--danger);}
-  .form-grid label .dc{margin-left:auto;font-size:9.5px;color:var(--faint);font-weight:500;border:1px solid #E1E5EA;padding:0 5px;border-radius:8px;align-self:center;}
+  .form-grid label .dc{display:none;margin-left:auto;font-size:9.5px;color:var(--faint);font-weight:500;border:1px solid #E1E5EA;padding:0 5px;border-radius:8px;align-self:center;}
+  .show-dc .form-grid label .dc{display:inline;}
+  .dc-toggle-btn{margin-left:auto;margin-right:8px;font-size:11px;padding:3px 9px;border-radius:10px;border:1px solid #E1E5EA;background:#F5F7FA;color:var(--muted,#7A8592);cursor:pointer;white-space:nowrap;}
+  .show-dc .dc-toggle-btn{background:var(--amber-tint,#FFF3D6);color:var(--amber,#B8860B);border-color:var(--amber,#B8860B);}
   .form-grid .field{border-bottom:1px solid var(--line);padding:8px 14px;display:flex;align-items:center;}
   input[type=text], input[type=date], select, textarea{
     width:100%;border:1px solid #D6DBE1;border-radius:4px;padding:7px 9px;font-size:13px;font-family:inherit;color:var(--ink);background:#fff;
@@ -824,10 +827,10 @@
         <button class="btn" id="btnHandover" onclick="handoverSelected()" style="display:none;" disabled>등록인계</button>
         <button class="btn" onclick="exportExcel()">출력</button>
         <button class="btn" onclick="openCategoryManager()">화도학 분류 관리</button>
-        <button class="btn" onclick="openThesaurus()">화도학 용어집</button>
+        <button class="btn" id="btnThesaurus" onclick="openThesaurus()">화도학 용어집</button>
         <button class="btn" onclick="openBrandingDashboard()">지역 가치 발견</button>
-        <button class="btn" onclick="openLasImport()">기존 자료 반입</button>
-        <span class="toolbar-hint">선택 후 수정·삭제·검수 시작·등록인계를 사용할 수 있습니다</span>
+        <button class="btn" onclick="openLasImport()">LAS 연계 기존 자료 반입</button>
+        <span class="toolbar-hint" id="toolbarHint">선택 후 수정·삭제·검수 시작·등록인계를 사용할 수 있습니다</span>
       </div>
 
       <div class="cat-filter-bar" id="localStudyFilterBar"></div>
@@ -852,6 +855,7 @@
   <div class="modal">
     <div class="modal-head">
       <span id="modalTitle">지역학 자료 입력</span>
+      <button type="button" class="dc-toggle-btn" id="dcToggleBtn" onclick="toggleDcLabels()">고급 정보 표시(Dublin Core)</button>
       <button class="modal-x" onclick="closeModal()">✕</button>
     </div>
     <div class="modal-tabs" id="modalTabs">
@@ -899,12 +903,12 @@
           <label>지역 태그<span class="dc">Coverage</span></label>
           <div class="field" style="display:block;">
             <input type="text" id="f_coverage" placeholder="예: 남양주시 화도읍 (쉼표 구분)">
-            <div class="hint" style="margin-top:4px;">저장 시 화도학 용어집에도 자동으로 함께 쌓입니다</div>
+            <div class="hint" style="margin-top:4px;"><span id="coverageThesaurusHint">저장 시 화도학 용어집에도 자동으로 함께 쌓입니다</span></div>
           </div>
           <label>주제 태그<span class="dc">Subject</span></label>
           <div class="field" style="position:relative;display:block;">
             <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
-              <button type="button" class="btn sm" onclick="openThesaurus()">화도학 용어집 바로가기</button>
+              <button type="button" class="btn sm" id="btnThesaurusShortcut" onclick="openThesaurus()">화도학 용어집 바로가기</button>
               <button type="button" class="btn sm" onclick="openBrandingDashboard()">지역 가치 발견</button>
             </div>
             <div class="tag-input" id="subjectTagBox" onclick="document.getElementById('f_subject_text').focus()">
@@ -914,13 +918,13 @@
             <div class="tag-suggest" id="subjectSuggest" style="display:none;"></div>
             <div class="hint" id="subjectHint" style="margin-top:4px;"></div>
           </div>
-          <label id="lsFieldLabel" style="display:none;">지역학 구분<span class="dc">LocalStudy</span></label>
-          <div class="field" id="lsFieldWrap" style="display:none;">
+          <label id="lsFieldLabel" style="display:none;">소속 지역학<span class="dc">LocalStudy</span><br><small style="font-weight:400;color:var(--faint);">이 자료가 속하는 지역학 자체</small></label>
+          <div class="field" id="lsFieldWrap" style="display:none;background:#F3F8FF;border-left:3px solid #4C8BF5;border-radius:0 6px 6px 0;">
             <div class="cat-chip-picker" id="localStudyFieldChips"></div>
             <div class="hint" style="margin-top:4px;">이 자료가 해당되는 지역학을 중복 선택할 수 있습니다(예: 화도학·별내학 모두 해당되는 자료).</div>
           </div>
-          <label>화도학 분류<span class="dc">Category</span></label>
-          <div class="field" style="display:block;">
+          <label>세부 분류 태그<span class="dc">Category</span><br><small style="font-weight:400;color:var(--faint);">지역학 내 갈래(화도학 분류)</small></label>
+          <div class="field" id="categoryFieldWrap" style="display:block;background:#FBF7EE;border-left:3px solid #C9A24B;border-radius:0 6px 6px 0;">
             <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
               <button type="button" class="btn sm" onclick="openCategoryManager()">분류 추가·수정·삭제</button>
             </div>
@@ -937,11 +941,11 @@
           </div>
           <label>원본 소재<span class="dc">Source</span></label>
           <div class="field"><input type="text" id="f_source" placeholder="예: 원본은 기증자 보관 / 도서관 서고 3층 A-12"></div>
-          <label>연관 도서관 자료</label>
+          <label>관련 장서 연결</label>
           <div class="field" style="display:block;">
             <div class="file-list" id="alpasLinkedList"></div>
             <div style="display:flex;align-items:center;gap:8px;margin-top:6px;">
-              <button type="button" class="btn sm" id="btnAlpasAdd" onclick="openAlpasSearch()">+ 자료반입</button>
+              <button type="button" class="btn sm" id="btnAlpasAdd" onclick="openAlpasSearch()">+ 장서 검색·연결</button>
               <span class="hint" id="alpasLinkHint" style="margin:0;"></span>
             </div>
           </div>
@@ -977,10 +981,10 @@
   </div>
 </div>
 
-<!-- 자료반입(도서관 자료 검색) 팝업 -->
+<!-- 관련 장서 연결(도서관 자료 검색) 팝업 -->
 <div class="modal-backdrop" id="alpasModal">
   <div class="modal" style="max-width:560px;">
-    <div class="modal-head"><span>도서관 자료 반입</span><button class="modal-x" onclick="closeAlpasSearch()">✕</button></div>
+    <div class="modal-head"><span>관련 장서 검색·연결</span><button class="modal-x" onclick="closeAlpasSearch()">✕</button></div>
     <div class="modal-body mb-pad">
       <div class="search-bar" style="padding:0 0 12px;">
         <input type="text" id="alpasKw" placeholder="서명·저자·청구기호로 검색" oninput="renderAlpasResults()">
@@ -1084,8 +1088,10 @@
         <div class="edit-mode-label" id="builderModeLabel"></div>
         <div class="brow"><label>단 제목</label><div style="display:flex;gap:8px;">
           <input type="text" id="c_title" style="flex:1;" placeholder="예: 마석우리 장터의 기억">
-          <select id="c_title_from_category" style="max-width:200px;" onchange="if(this.value){document.getElementById('c_title').value=this.value;} this.value='';"><option value="">화도학 분류에서 선택…</option></select>
-        </div></div>
+          <select id="c_title_from_category" style="max-width:200px;" onchange="applyCategoryToCollection(this.value); this.value='';"><option value="">화도학 분류에서 선택…</option></select>
+        </div>
+        <div class="hint" style="margin-top:4px;">분류를 선택하면 단 제목이 채워지고, 그 분류에 속한 게시 자료가 최신 등록순으로 '포함 자료'에 자동 반영됩니다. 이후 목록에서 개별로 추가·제외할 수 있습니다.</div>
+        </div>
         <div class="brow"><label>소개글</label><textarea id="c_desc" placeholder="이 단을 방문자에게 어떻게 소개할지 작성"></textarea></div>
         <div class="brow"><label>대표 이미지</label><div><div class="thumb-pick" id="thumbPick"></div><div class="hint">포함 자료 중 이미지가 있는 항목에서 대표 이미지를 선택하세요</div></div></div>
         <div class="brow"><label>배경 설정</label><div>
@@ -1334,8 +1340,7 @@
         </div>
       </div>
 
-      <div class="brow"><label>납품 희망일</label><input type="date" id="ord_delivery_date"></div>
-      <div class="brow"><label>결제 방법</label><textarea id="ord_payment" placeholder="예: 세금계산서 발행 후 익월 계좌이체 등, 결제 방법을 자유롭게 입력하세요"></textarea></div>
+      <div class="brow" style="align-items:flex-start;"><label>참고사항</label><textarea id="ord_memo" placeholder="납품 희망일, 결제 방법 등 자유롭게 기재"></textarea></div>
     </div>
     <div class="modal-foot">
       <span class="hint">요청 즉시 아래 '제작 요청 내역' 목록에서 확인할 수 있습니다</span>
@@ -1351,11 +1356,11 @@
 <div class="modal-backdrop" id="thesaurusModal">
   <div class="modal" style="max-width:640px;max-height:90vh;">
     <div class="modal-head">
-      <span>화도학 용어집 (지역 특화 시소러스)</span>
+      <span id="thesaurusModalTitle">화도학 용어집 (지역 특화 시소러스)</span>
       <button class="modal-x" onclick="closeThesaurus()">✕</button>
     </div>
     <div class="modal-body mb-pad">
-      <div class="hint" style="display:block;margin-bottom:10px;">사서가 주제어를 입력할 때마다 자동으로 쌓이는 용어 목록입니다. 여기서 직접 추가·수정·삭제할 수도 있고, 자료 등록 화면의 주제 태그 입력 시 초성 검색으로 바로 추천됩니다. 사용 횟수가 일정 기준 이상인 용어에는 배지가 붙어 플랫폼 미리보기의 '화도학 브랜드 키워드'에도 노출됩니다.</div>
+      <div class="hint" style="display:block;margin-bottom:10px;">사서가 주제어를 입력할 때마다 자동으로 쌓이는 용어 목록입니다. 여기서 직접 추가·수정·삭제할 수도 있고, 자료 등록 화면의 주제 태그 입력 시 초성 검색으로 바로 추천됩니다. 사용 횟수가 일정 기준 이상인 용어에는 배지가 붙어 플랫폼 미리보기의 <span id="brandKeywordPhrase">'화도학 브랜드 키워드'</span>에도 노출됩니다.</div>
       <div id="thTopKeywords" class="brand-section" style="margin-bottom:16px;"></div>
       <div class="brow"><label>새 용어 추가</label><input type="text" id="th_new_term" placeholder="용어를 입력하세요" oninput="renderThesaurusSimilar()"></div>
       <div id="thSimilar" class="ord-book-results" style="display:none;"></div>
@@ -1499,7 +1504,7 @@ const LAS_IMPORT_FIELDS = [
    자동 채번되는 것처럼 보이도록 초기 카운터를 크게 잡아둔다. 실제 연동 시에는 이 초기값을
    도서관 등록대장의 마지막 채번 값으로 교체하면 된다. */
 const REG_COUNTER_BASE = 48213;
-let settings = { templateId:'grid', labels:{item:'아이템',collection:'컬렉션',exhibit:'전시회'}, plan:'general', regCounter:REG_COUNTER_BASE, receiptNumbers:[], localStudyName:'행복학' };
+let settings = { templateId:'grid', labels:{item:'아이템',collection:'컬렉션',exhibit:'전시회'}, plan:'general', regCounter:REG_COUNTER_BASE, receiptNumbers:[], localStudyName:'화도학' };
 let collections = [];
 let customContent = [];
 let contentOrders = [];
@@ -1612,12 +1617,12 @@ function rowToCc(row){
     thumb:row.thumb, images:row.images||[], premium:!!row.is_premium, createdAt:row.created_at };
 }
 function contentOrderToRow(o){
-  return { id:o.id, books:o.books||[], items:o.items||[], delivery_date:o.deliveryDate||null,
-    payment_method:o.paymentMethod||'', status:o.status||'요청됨', created_at:o.createdAt||new Date().toISOString() };
+  return { id:o.id, books:o.books||[], items:o.items||[], memo:o.memo||'',
+    status:o.status||'요청됨', created_at:o.createdAt||new Date().toISOString() };
 }
 function rowToContentOrder(row){
-  return { id:row.id, books:row.books||[], items:row.items||[], deliveryDate:row.delivery_date,
-    paymentMethod:row.payment_method, status:row.status||'요청됨', createdAt:row.created_at };
+  return { id:row.id, books:row.books||[], items:row.items||[], memo:row.memo||'',
+    status:row.status||'요청됨', createdAt:row.created_at };
 }
 function thesaurusToRow(t){
   return { id:t.id, term:t.term, chosung:t.chosung||'', use_count:t.useCount||1, created_at:t.createdAt||new Date().toISOString() };
@@ -1650,13 +1655,13 @@ function rowToDonor(row){
 function settingsToRow(){
   return { id:1, template_id:settings.templateId, plan:settings.plan,
     reg_counter:settings.regCounter||0, receipt_numbers:settings.receiptNumbers||[],
-    local_study_name:settings.localStudyName||'행복학' };
+    local_study_name:settings.localStudyName||'화도학' };
 }
 function rowToSettings(row){
   return {
     templateId:row.template_id||'grid', labels:{item:'아이템',collection:'컬렉션',exhibit:'전시회'},
     plan:row.plan||'general', regCounter:row.reg_counter||REG_COUNTER_BASE,
-    receiptNumbers:row.receipt_numbers||[], localStudyName:row.local_study_name||'행복학'
+    receiptNumbers:row.receipt_numbers||[], localStudyName:row.local_study_name||'화도학'
   };
 }
 
@@ -1720,12 +1725,17 @@ async function loadRecords(){
     localStudies = [{ id:'ls_'+Date.now(), name:settings.localStudyName, createdAt:new Date().toISOString() }];
     await saveLocalStudies();
   }
+  applyLocalStudyBranding();
 }
 async function saveRecords(){
   if(!sb) return;
   try{
-    await sb.from('records').delete().neq('id','__none__');
-    if(records.length) await sb.from('records').insert(records.map(recordToRow));
+    const { data: existing } = await sb.from('records').select('id');
+    const existingIds = new Set((existing||[]).map(r=>r.id));
+    const currentIds = new Set(records.map(r=>r.id));
+    const toDelete = [...existingIds].filter(id=>!currentIds.has(id));
+    if(toDelete.length) await sb.from('records').delete().in('id', toDelete);
+    if(records.length) await sb.from('records').upsert(records.map(recordToRow));
   }catch(e){ console.error('저장 실패', e); }
 }
 async function saveSettings(){
@@ -1736,50 +1746,78 @@ async function saveSettings(){
 async function saveCollections(){
   if(!sb) return;
   try{
-    await sb.from('collections').delete().neq('id','__none__');
-    if(collections.length) await sb.from('collections').insert(collections.map((c,i)=>collectionToRow(c,i)));
+    const { data: existing } = await sb.from('collections').select('id');
+    const existingIds = new Set((existing||[]).map(r=>r.id));
+    const currentIds = new Set(collections.map(r=>r.id));
+    const toDelete = [...existingIds].filter(id=>!currentIds.has(id));
+    if(toDelete.length) await sb.from('collections').delete().in('id', toDelete);
+    if(collections.length) await sb.from('collections').upsert(collections.map((c,i)=>collectionToRow(c,i)));
   }catch(e){ console.error('저장 실패', e); }
 }
 async function saveCustomContent(){
   if(!sb) return;
   try{
-    await sb.from('custom_content').delete().neq('id','__none__');
-    if(customContent.length) await sb.from('custom_content').insert(customContent.map(ccToRow));
+    const { data: existing } = await sb.from('custom_content').select('id');
+    const existingIds = new Set((existing||[]).map(r=>r.id));
+    const currentIds = new Set(customContent.map(r=>r.id));
+    const toDelete = [...existingIds].filter(id=>!currentIds.has(id));
+    if(toDelete.length) await sb.from('custom_content').delete().in('id', toDelete);
+    if(customContent.length) await sb.from('custom_content').upsert(customContent.map(ccToRow));
   }catch(e){ console.error('저장 실패', e); }
 }
 async function saveContentOrders(){
   if(!sb) return;
   try{
-    await sb.from('content_orders').delete().neq('id','__none__');
-    if(contentOrders.length) await sb.from('content_orders').insert(contentOrders.map(contentOrderToRow));
+    const { data: existing } = await sb.from('content_orders').select('id');
+    const existingIds = new Set((existing||[]).map(r=>r.id));
+    const currentIds = new Set(contentOrders.map(r=>r.id));
+    const toDelete = [...existingIds].filter(id=>!currentIds.has(id));
+    if(toDelete.length) await sb.from('content_orders').delete().in('id', toDelete);
+    if(contentOrders.length) await sb.from('content_orders').upsert(contentOrders.map(contentOrderToRow));
   }catch(e){ console.error('저장 실패', e); }
 }
 async function saveThesaurus(){
   if(!sb) return;
   try{
-    await sb.from('thesaurus_terms').delete().neq('id','__none__');
-    if(thesaurusTerms.length) await sb.from('thesaurus_terms').insert(thesaurusTerms.map(thesaurusToRow));
+    const { data: existing } = await sb.from('thesaurus_terms').select('id');
+    const existingIds = new Set((existing||[]).map(r=>r.id));
+    const currentIds = new Set(thesaurusTerms.map(r=>r.id));
+    const toDelete = [...existingIds].filter(id=>!currentIds.has(id));
+    if(toDelete.length) await sb.from('thesaurus_terms').delete().in('id', toDelete);
+    if(thesaurusTerms.length) await sb.from('thesaurus_terms').upsert(thesaurusTerms.map(thesaurusToRow));
   }catch(e){ console.error('저장 실패', e); }
 }
 async function saveDonors(){
   if(!sb) return;
   try{
-    await sb.from('donors').delete().neq('id','__none__');
-    if(donors.length) await sb.from('donors').insert(donors.map(donorToRow));
+    const { data: existing } = await sb.from('donors').select('id');
+    const existingIds = new Set((existing||[]).map(r=>r.id));
+    const currentIds = new Set(donors.map(r=>r.id));
+    const toDelete = [...existingIds].filter(id=>!currentIds.has(id));
+    if(toDelete.length) await sb.from('donors').delete().in('id', toDelete);
+    if(donors.length) await sb.from('donors').upsert(donors.map(donorToRow));
   }catch(e){ console.error('저장 실패', e); }
 }
 async function saveCategories(){
   if(!sb) return;
   try{
-    await sb.from('local_categories').delete().neq('id','__none__');
-    if(categories.length) await sb.from('local_categories').insert(categories.map(categoryToRow));
+    const { data: existing } = await sb.from('local_categories').select('id');
+    const existingIds = new Set((existing||[]).map(r=>r.id));
+    const currentIds = new Set(categories.map(r=>r.id));
+    const toDelete = [...existingIds].filter(id=>!currentIds.has(id));
+    if(toDelete.length) await sb.from('local_categories').delete().in('id', toDelete);
+    if(categories.length) await sb.from('local_categories').upsert(categories.map(categoryToRow));
   }catch(e){ console.error('저장 실패', e); }
 }
 async function saveLocalStudies(){
   if(!sb) return;
   try{
-    await sb.from('local_studies').delete().neq('id','__none__');
-    if(localStudies.length) await sb.from('local_studies').insert(localStudies.map(localStudyToRow));
+    const { data: existing } = await sb.from('local_studies').select('id');
+    const existingIds = new Set((existing||[]).map(r=>r.id));
+    const currentIds = new Set(localStudies.map(r=>r.id));
+    const toDelete = [...existingIds].filter(id=>!currentIds.has(id));
+    if(toDelete.length) await sb.from('local_studies').delete().in('id', toDelete);
+    if(localStudies.length) await sb.from('local_studies').upsert(localStudies.map(localStudyToRow));
   }catch(e){ console.error('저장 실패', e); }
 }
 
@@ -1929,6 +1967,12 @@ function openForm(acqType){
   document.getElementById('btnInspect').style.display = acqType==='기증' ? 'inline-block' : 'none';
   document.getElementById('btnHandover').style.display = acqType==='기증' ? 'inline-block' : 'none';
   document.getElementById('mtabGift').style.display = acqType==='기증' ? 'block' : 'none';
+  const toolbarHintEl = document.getElementById('toolbarHint');
+  if(toolbarHintEl){
+    toolbarHintEl.textContent = acqType==='기증'
+      ? '기증 자료는 접수(자동) → 검수 시작(내용 확인) → 등록인계(정식 등록) 3단계를 거칩니다. 목록에서 자료를 선택한 뒤 순서대로 눌러주세요.'
+      : '선택 후 수정·삭제를 사용할 수 있습니다';
+  }
   resetSearch();
   document.getElementById('view-menu').classList.remove('on');
   showView('view-form');
@@ -1943,6 +1987,22 @@ function renderLocalName(){
     : `<span class="cat-chip-empty">등록된 지역학 구분이 없습니다 — '지역학 관리'에서 추가해 주세요</span>`;
 }
 function primaryLocalStudyName(){ return (localStudies[0] && localStudies[0].name) || '지역학'; }
+function applyLocalStudyBranding(){
+  const name = primaryLocalStudyName();
+  const setText = (id, text) => { const el = document.getElementById(id); if(el) el.textContent = text; };
+  setText('btnThesaurus', name + ' 용어집');
+  setText('btnThesaurusShortcut', name + ' 용어집 바로가기');
+  setText('thesaurusModalTitle', name + ' 용어집 (지역 특화 시소러스)');
+  setText('coverageThesaurusHint', '저장 시 ' + name + ' 용어집에도 자동으로 함께 쌓입니다');
+  setText('brandKeywordPhrase', "'" + name + " 브랜드 키워드'");
+}
+function toggleDcLabels(){
+  const modal = document.getElementById('formModal');
+  if(!modal) return;
+  const on = modal.classList.toggle('show-dc');
+  const btn = document.getElementById('dcToggleBtn');
+  if(btn) btn.textContent = on ? '고급 정보 숨기기(Dublin Core)' : '고급 정보 표시(Dublin Core)';
+}
 function toggleDetailSearch(){
   const d = document.getElementById('detailSearch');
   d.style.display = d.style.display==='none' ? 'flex' : 'none';
@@ -2072,7 +2132,9 @@ async function handoverSelected(){
   if(!confirm('등록 인계를 진행하시겠습니까? (검수중 → 등록완료)')) return;
   records.filter(r=>selectedIds.has(r.id)).forEach(r=>{
     r.status='등록완료';
-    r.regNo = nextRegNo();
+    // 접수번호(기증 접수 단계에서 부여)와 등록번호(정식 등록 시 부여)는 서로 다른 채번 체계입니다.
+    // 사서가 두 번호를 함께 추적할 수 있도록, 등록번호 뒤에 원 접수번호를 괄호로 병기합니다.
+    r.regNo = nextRegNo() + (r.receiptNo ? ` (접수 ${r.receiptNo})` : '');
   });
   await saveRecords(); await saveSettings();
   selectedIds.clear();
@@ -2291,6 +2353,7 @@ async function addThesaurusTerm(term){
   await saveThesaurus();
 }
 function openThesaurus(){
+  applyLocalStudyBranding();
   document.getElementById('th_new_term').value='';
   document.getElementById('th_search').value='';
   document.getElementById('thSimilar').style.display='none';
@@ -2322,7 +2385,7 @@ async function addThesaurusTermManual(){
   const term = document.getElementById('th_new_term').value.trim();
   if(!term){ showToast('용어를 입력해 주세요'); return; }
   await addThesaurusTerm(term);
-  showToast('화도학 용어집에 등록되었습니다: ' + term);
+  showToast(primaryLocalStudyName() + ' 용어집에 등록되었습니다: ' + term);
   document.getElementById('th_new_term').value='';
   document.getElementById('thSimilar').style.display='none';
   renderThesaurusList();
@@ -2346,7 +2409,7 @@ function renderThesaurusList(){
         ${groups[g].map(t=>`
           <span class="ord-book-chip" style="background:var(--amber-tint);color:var(--amber);">
             <button type="button" class="th-term-btn" onclick="openTopicHub('${escapeHtml(t.term).replace(/'/g,"\\'")}')">${escapeHtml(t.term)}</button>
-            <span style="opacity:.7;">(${t.useCount})</span>${t.useCount>=BRAND_BADGE_THRESHOLD ? '<span class="th-badge" title="화도학 특화 키워드">특화</span>' : ''}
+            <span style="opacity:.7;">(${t.useCount})</span>${t.useCount>=BRAND_BADGE_THRESHOLD ? ('<span class="th-badge" title="'+primaryLocalStudyName()+' 특화 키워드">특화</span>') : ''}
             <span class="x" onclick="deleteThesaurusTerm('${t.id}')">✕</span>
           </span>`).join('')}
       </div>
@@ -2355,7 +2418,7 @@ function renderThesaurusList(){
   renderThTopKeywords();
 }
 async function deleteThesaurusTerm(id){
-  if(!confirm('이 용어를 화도학 용어집에서 삭제할까요?')) return;
+  if(!confirm('이 용어를 ' + primaryLocalStudyName() + ' 용어집에서 삭제할까요?')) return;
   thesaurusTerms = thesaurusTerms.filter(t=>t.id!==id);
   await saveThesaurus();
   renderThesaurusList();
@@ -2702,7 +2765,7 @@ function renderKeywordRankingHtml(list){
   return list.map((t,i)=>`
     <div class="brand-rank-row">
       <div class="brand-rank-no">${i+1}</div>
-      <button type="button" class="th-term-btn brand-rank-name" onclick="openTopicHub('${escapeHtml(t.term).replace(/'/g,"\\'")}')">${escapeHtml(t.term)}${t.useCount>=BRAND_BADGE_THRESHOLD ? ' <span class="th-badge" title="화도학 특화 키워드">특화</span>' : ''}</button>
+      <button type="button" class="th-term-btn brand-rank-name" onclick="openTopicHub('${escapeHtml(t.term).replace(/'/g,"\\'")}')">${escapeHtml(t.term)}${t.useCount>=BRAND_BADGE_THRESHOLD ? (' <span class="th-badge" title="'+primaryLocalStudyName()+' 특화 키워드">특화</span>') : ''}</button>
       <div class="brand-rank-bar-wrap"><div class="brand-rank-bar" style="width:${Math.round((t.useCount||0)/max*100)}%;"></div></div>
       <div class="brand-rank-count">${t.useCount||0}회</div>
     </div>`).join('');
@@ -2711,7 +2774,7 @@ function renderThTopKeywords(){
   const el = document.getElementById('thTopKeywords');
   if(!el) return;
   const top = topKeywords(5);
-  el.innerHTML = `<div class="brand-section-title">화도학 핵심 키워드 TOP 5</div>` + renderKeywordRankingHtml(top);
+  el.innerHTML = `<div class="brand-section-title">${primaryLocalStudyName()} 핵심 키워드 TOP 5</div>` + renderKeywordRankingHtml(top);
 }
 
 /* ══════ 주제 허브: 용어 클릭 시 관련 자료 모아보기 ══════ */
@@ -2738,7 +2801,7 @@ function openTopicHub(term){
   document.getElementById('hubBody').innerHTML = `
     <div class="hub-head-badge">
       <span class="hint" style="margin:0;">사용 ${t ? t.useCount : matched.length}회</span>
-      ${t && t.useCount>=BRAND_BADGE_THRESHOLD ? `<span class="brand-badge-pill">화도학 특화 키워드</span>` : ''}
+      ${t && t.useCount>=BRAND_BADGE_THRESHOLD ? `<span class="brand-badge-pill">${primaryLocalStudyName()} 특화 키워드</span>` : ''}
     </div>
     <div class="brand-section">
       <div class="brand-section-title">연관 자료 (${matched.length}건)</div>
@@ -2811,12 +2874,12 @@ function openBrandingDashboard(){
       ${renderBarChartHtml(recordYearData)}
     </div>
     <div class="brand-section">
-      <div class="brand-section-title">화도학 용어집 누적 추이</div>
+      <div class="brand-section-title">${primaryLocalStudyName()} 용어집 누적 추이</div>
       <div class="brand-section-desc">지역 특화 시소러스(용어집)가 연도별로 얼마나 확장되어 왔는지 보여줍니다.</div>
       ${renderBarChartHtml(termYearData)}
     </div>
     <div class="brand-section">
-      <div class="brand-section-title">화도학 키워드 연관망</div>
+      <div class="brand-section-title">${primaryLocalStudyName()} 키워드 연관망</div>
       <div class="brand-section-desc">한 자료에 함께 태깅된 주제어 조합입니다. 자주 등장하는 조합일수록 지역 정체성을 이루는 핵심 스토리 라인입니다.</div>
       ${pairs.length ? pairs.map(([pair,cnt])=>`<div class="brand-cooc-row"><span class="brand-cooc-main">${escapeHtml(pair)}</span><span class="brand-cooc-chip">${cnt}건 동시 등장</span></div>`).join('')
         : `<span class="hint">아직 한 자료에 2개 이상의 주제어가 함께 태깅된 사례가 없습니다</span>`}
@@ -2894,7 +2957,7 @@ function hideSubjectSuggest(){
   el.style.display='none'; el.innerHTML='';
 }
 
-/* 자료반입: 도서관 자료 검색 팝업
+/* 관련 장서 연결: 도서관 자료 검색 팝업 (개별 자료 1건에 관련 장서를 링크하는 기능 — 'LAS 연계 기존 자료 반입'과는 다른 기능)
    임시 목데이터 — 추후 도서관 KORMARC 서지데이터를 연계해 전체 장서를 검색·연결할 수 있도록 대체 예정 */
 const ALPAS_LINK_MAX = 5;
 const ALPAS_BOOKS = [
@@ -2986,6 +3049,19 @@ function renderPublish(){
 }
 
 /* ── 템플릿 · 큐레이션 ── */
+function applyCategoryToCollection(name){
+  if(!name) return;
+  document.getElementById('c_title').value = name;
+  const matched = records
+    .filter(r=>r.published && (r.categories||[]).includes(name))
+    .slice()
+    .sort((a,b)=> new Date(b.createdAt||0) - new Date(a.createdAt||0));
+  builderPickedIds = new Set(matched.map(r=>r.id));
+  renderCurate();
+  showToast(matched.length
+    ? `'${name}' 분류 자료 ${matched.length}건을 최신 등록순으로 포함했습니다`
+    : `'${name}' 분류에 게시된 자료가 아직 없습니다 — 제목만 채워졌습니다`);
+}
 function renderCurate(){
   document.getElementById('tplGrid').innerHTML = TEMPLATE_CATEGORIES.map(cat=>`
     <div class="tpl-cat-block">
@@ -3607,7 +3683,7 @@ function renderOrderHistory(){
     <h4>제작 요청 내역</h4>
     <div class="store-registered">
       <table class="store-reg-table">
-        <thead><tr><th>참고 도서</th><th>제작 분류·수량</th><th>납품 희망일</th><th>결제 방법</th><th>진행 상태</th><th></th></tr></thead>
+        <thead><tr><th>참고 도서</th><th>제작 분류·수량</th><th>참고사항</th><th>진행 상태</th><th></th></tr></thead>
         <tbody>
           ${contentOrders.map(o=>{
             const idx = ORDER_STATUS_STAGES.indexOf(o.status);
@@ -3616,8 +3692,7 @@ function renderOrderHistory(){
             <tr>
               <td>${o.books.map(b=>escapeHtml(b.title)).join(', ')}</td>
               <td>${o.items.map(it=>`${escapeHtml(it.category)} ${it.qty}종`).join(' / ')}</td>
-              <td>${escapeHtml(o.deliveryDate||'')}</td>
-              <td>${escapeHtml(o.paymentMethod||'')}</td>
+              <td>${escapeHtml(o.memo||'')}</td>
               <td>${buildOrderStepperHtml(o.status)}</td>
               <td>
                 ${!isLast ? `<button type="button" class="btn sm" onclick="advanceOrderStatus('${o.id}')" title="데모용: 다음 단계로 상태를 진행시킵니다">다음 단계</button>` : ''}
@@ -3675,8 +3750,7 @@ function openContentOrderModal(category, bookSearchPrefill){
   ordSelectedBookIds = [];
   ordCatRows = [{ category: knownCats.includes(category) ? category : knownCats[0], qty: 3 }];
   document.getElementById('ord_book_search').value = bookSearchPrefill || '';
-  document.getElementById('ord_delivery_date').value = '';
-  document.getElementById('ord_payment').value = '';
+  document.getElementById('ord_memo').value = '';
   renderOrderBookResults();
   renderOrderSelectedBooks();
   renderOrderCatRows();
@@ -3740,16 +3814,13 @@ function renderOrderCatRows(){
 async function submitContentOrder(){
   if(!ordSelectedBookIds.length){ showToast('참고할 도서를 1권 이상 선택해 주세요'); return; }
   if(!ordCatRows.length){ showToast('제작 분류를 1개 이상 추가해 주세요'); return; }
-  const deliveryDate = document.getElementById('ord_delivery_date').value;
-  if(!deliveryDate){ showToast('납품 희망일을 선택해 주세요'); return; }
-  const paymentMethod = document.getElementById('ord_payment').value.trim();
-  if(!paymentMethod){ showToast('결제 방법을 입력해 주세요'); return; }
+  const memo = document.getElementById('ord_memo').value.trim();
   const books = ordSelectedBookIds.map(id=>LIBRARY_BOOK_CATALOG.find(b=>b.id===id)).filter(Boolean)
     .map(b=>({id:b.id, title:b.title, author:b.author, publisher:b.publisher}));
   contentOrders.unshift({
     id:'ord_'+Date.now(),
     books, items: ordCatRows.map(r=>({category:r.category, qty:r.qty})),
-    deliveryDate, paymentMethod, status:'요청됨', createdAt:new Date().toISOString()
+    memo, status:'요청됨', createdAt:new Date().toISOString()
   });
   await saveContentOrders();
   showToast('제작 요청이 접수되었습니다 (데모)');
