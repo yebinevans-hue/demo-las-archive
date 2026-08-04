@@ -223,10 +223,16 @@
   .cat-mgr-row input{flex:1;border:1px solid transparent;background:transparent;font-size:13px;font-weight:600;padding:4px 6px;border-radius:4px;}
   .cat-mgr-row input:focus{border-color:var(--primary);background:#fff;outline:none;}
   .cat-mgr-count{font-size:11.5px;color:var(--muted);white-space:nowrap;}
-  .cat-filter-bar{display:flex;flex-wrap:wrap;gap:6px;padding:0 0 12px;}
-  .cat-filter-chip{display:inline-flex;align-items:center;gap:4px;border:1px solid #D6DBE1;background:#fff;color:var(--ink);border-radius:999px;padding:4px 11px;font-size:12px;font-weight:600;cursor:pointer;}
-  .cat-filter-chip:hover{border-color:var(--primary);}
-  .cat-filter-chip.on{background:var(--primary-tint);border-color:var(--primary);color:var(--primary);}
+  .cat-filter-bar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;padding:0 14px 10px;}
+  .filter-row-label{font-size:11px;font-weight:800;color:var(--muted);white-space:nowrap;margin-right:2px;letter-spacing:.2px;}
+  .cat-filter-chip{display:inline-flex;align-items:center;gap:4px;border:1px solid #E7D6AE;background:#FBF7EE;color:#8A6A22;border-radius:999px;padding:4px 11px;font-size:12px;font-weight:600;cursor:pointer;}
+  .cat-filter-chip:hover{border-color:#C9A24B;}
+  .cat-filter-chip.on{background:#C9A24B;border-color:#C9A24B;color:#fff;}
+  .ls-filter-chip{display:inline-flex;align-items:center;gap:4px;border:1px solid #BBD3FA;background:#EFF5FF;color:#3266C7;border-radius:6px;padding:4px 11px;font-size:12px;font-weight:600;cursor:pointer;}
+  .ls-filter-chip:hover{border-color:#4C8BF5;}
+  .ls-filter-chip.on{background:#4C8BF5;border-color:#4C8BF5;color:#fff;}
+  .ls-filter-bar-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;padding:8px;background:#F3F8FF;border:1px solid #D9E6FC;border-radius:6px;}
+  .ls-filter-bar-tabs .ls-filter-chip{background:#fff;}
 
   /* 기존 자료 반입(LAS 연계) 마법사 */
   .las-steps{display:flex;gap:8px;margin-bottom:16px;}
@@ -826,7 +832,7 @@
         <button class="btn" id="btnInspect" onclick="startInspection()" style="display:none;" disabled>검수 시작</button>
         <button class="btn" id="btnHandover" onclick="handoverSelected()" style="display:none;" disabled>등록인계</button>
         <button class="btn" onclick="exportExcel()">출력</button>
-        <button class="btn" onclick="openCategoryManager()">화도학 분류 관리</button>
+        <button class="btn" onclick="openCategoryManager()">지역학 분류 관리</button>
         <button class="btn" id="btnThesaurus" onclick="openThesaurus()">화도학 용어집</button>
         <button class="btn" onclick="openBrandingDashboard()">지역 가치 발견</button>
         <button class="btn" onclick="openLasImport()">LAS 연계 기존 자료 반입</button>
@@ -926,10 +932,10 @@
           <label>세부 분류 태그<span class="dc">Category</span><br><small style="font-weight:400;color:var(--faint);">지역학 내 갈래(화도학 분류)</small></label>
           <div class="field" id="categoryFieldWrap" style="display:block;background:#FBF7EE;border-left:3px solid #C9A24B;border-radius:0 6px 6px 0;">
             <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
-              <button type="button" class="btn sm" onclick="openCategoryManager()">분류 추가·수정·삭제</button>
+              <button type="button" class="btn sm" onclick="openCategoryManager()">지역학 분류 관리</button>
             </div>
             <div class="cat-chip-picker" id="categoryFieldChips"></div>
-            <div class="hint" style="margin-top:4px;">이 도서관만의 갈래(예: 이석영, 음악, 화도읍 생활상)로 중복 선택할 수 있습니다. 새 분류는 위 버튼으로 먼저 만들어 주세요.</div>
+            <div class="hint" style="margin-top:4px;">위에서 선택한 지역학 소속의 세부 갈래(예: 이석영, 음악, 화도읍 생활상)만 여기 표시됩니다. 중복 선택 가능, 새 분류는 '지역학 분류 관리'에서 먼저 만들어 주세요.</div>
           </div>
           <label>공개범위 <span class="req">*</span><span class="dc">Rights</span></label>
           <div class="field">
@@ -1398,13 +1404,14 @@
 
 <!-- 화도학 분류(카테고리) 관리 -->
 <div class="modal-backdrop" id="categoryModal">
-  <div class="modal" style="max-width:520px;max-height:90vh;">
+  <div class="modal" style="max-width:560px;max-height:90vh;">
     <div class="modal-head">
-      <span>화도학 분류 관리</span>
+      <span>지역학 분류 관리</span>
       <button class="modal-x" onclick="closeCategoryManager()">✕</button>
     </div>
     <div class="modal-body mb-pad">
-      <div class="hint" style="display:block;margin-bottom:10px;">'이석영', '음악', '화도읍 생활상'처럼 이 도서관만의 갈래로 자료를 묶기 위한 분류입니다. 여기서 추가·수정·삭제한 분류는 자료 등록/수정 화면에서 선택할 수 있고, 목록에서 분류별로 걸러볼 수 있으며, 플랫폼 '단' 제목을 만들 때도 그대로 불러다 쓸 수 있습니다.</div>
+      <div class="hint" style="display:block;margin-bottom:10px;">'이석영', '음악', '화도읍 생활상'처럼 이 도서관만의 갈래로 자료를 묶기 위한 분류입니다. 지역학마다 하위 분류를 따로 두므로, 먼저 아래에서 지역학을 선택한 뒤 그 지역학의 분류를 추가·수정·삭제해 주세요. 여기서 만든 분류는 자료 등록/수정 화면에서 선택할 수 있고, 목록에서 분류별로 걸러볼 수 있으며, 플랫폼 '단' 제목을 만들 때도 그대로 불러다 쓸 수 있습니다.</div>
+      <div id="catMgrStudyTabs" class="ls-filter-bar-tabs"></div>
       <div class="brow"><label>새 분류 추가</label><input type="text" id="cat_new_name" placeholder="예: 이석영, 음악, 화도읍 생활상" onkeydown="if(event.key==='Enter'){event.preventDefault();addCategoryManual();}"></div>
       <div style="display:flex;justify-content:flex-end;margin-bottom:14px;"><button type="button" class="btn primary sm" onclick="addCategoryManual()">+ 분류 추가</button></div>
       <div id="categoryManagerList"></div>
@@ -1631,10 +1638,10 @@ function rowToThesaurus(row){
   return { id:row.id, term:row.term, chosung:row.chosung||'', useCount:row.use_count||1, createdAt:row.created_at };
 }
 function categoryToRow(c){
-  return { id:c.id, name:c.name, created_at:c.createdAt||new Date().toISOString() };
+  return { id:c.id, name:c.name, local_study:c.localStudy||'', created_at:c.createdAt||new Date().toISOString() };
 }
 function rowToCategory(row){
-  return { id:row.id, name:row.name, createdAt:row.created_at };
+  return { id:row.id, name:row.name, localStudy:row.local_study||'', createdAt:row.created_at };
 }
 function localStudyToRow(ls){
   return { id:ls.id, name:ls.name, created_at:ls.createdAt||new Date().toISOString() };
@@ -1726,6 +1733,11 @@ async function loadRecords(){
     await saveLocalStudies();
   }
   applyLocalStudyBranding();
+  if(categories.some(c=>!c.localStudy) && localStudies.length){
+    const fallback = primaryLocalStudyName();
+    categories.forEach(c=>{ if(!c.localStudy) c.localStudy = fallback; });
+    await saveCategories();
+  }
 }
 async function saveRecords(){
   if(!sb) return;
@@ -2042,7 +2054,8 @@ function renderCategoryFilterBar(){
   const list = currentList();
   const used = categories.filter(c=>list.some(r=>(r.categories||[]).includes(c.name)));
   if(!used.length){ bar.innerHTML=''; return; }
-  const chips = [`<span class="cat-filter-chip ${!activeCategoryFilter?'on':''}" onclick="setCategoryFilter(null)">전체 (${list.length})</span>`]
+  const chips = [`<span class="filter-row-label">화도학 분류</span>`,
+    `<span class="cat-filter-chip ${!activeCategoryFilter?'on':''}" onclick="setCategoryFilter(null)">전체 (${list.length})</span>`]
     .concat(used.map(c=>{
       const n = list.filter(r=>(r.categories||[]).includes(c.name)).length;
       return `<span class="cat-filter-chip ${activeCategoryFilter===c.name?'on':''}" onclick="setCategoryFilter('${c.name.replace(/'/g,"\\'")}')">${escapeHtml(c.name)} (${n})</span>`;
@@ -2182,10 +2195,10 @@ function openModal(mode){
     document.getElementById('f_coverage').value = r.coverage||'';
     subjectTags = r.subject ? r.subject.split(',').map(s=>s.trim()).filter(Boolean) : [];
     renderSubjectTags();
-    categoryTags = r.categories ? r.categories.slice() : [];
-    renderCategoryFieldChips();
     localStudyFieldTags = r.localStudies ? r.localStudies.slice() : [];
     renderLocalStudyFieldChips();
+    categoryTags = r.categories ? r.categories.slice() : [];
+    renderCategoryFieldChips();
     document.querySelector(`input[name=rights][value="${r.rights}"]`).checked = true;
     document.getElementById('f_source').value = r.source||'';
     pendingAlpasLinks = r.alpasList ? r.alpasList.slice() : (r.alpas ? [{title:r.alpas, call:''}] : []);
@@ -2219,8 +2232,8 @@ function clearModalFields(){
   pendingAlpasLinks = []; renderAlpasLinkedList();
   subjectTags = []; document.getElementById('f_subject_text').value=''; renderSubjectTags();
   hideSubjectSuggest();
-  categoryTags = []; renderCategoryFieldChips();
   localStudyFieldTags = []; renderLocalStudyFieldChips();
+  categoryTags = []; renderCategoryFieldChips();
 }
 function toggleCategoryTag(name){
   const i = categoryTags.indexOf(name);
@@ -2231,10 +2244,24 @@ function renderCategoryFieldChips(){
   const box = document.getElementById('categoryFieldChips');
   if(!box) return;
   if(!categories.length){
-    box.innerHTML = `<span class="cat-chip-empty">아직 만들어진 분류가 없습니다 — '분류 관리'에서 먼저 추가해 주세요</span>`;
+    box.innerHTML = `<span class="cat-chip-empty">아직 만들어진 분류가 없습니다 — '지역학 분류 관리'에서 먼저 추가해 주세요</span>`;
     return;
   }
-  box.innerHTML = categories.slice().sort((a,b)=>a.name.localeCompare(b.name,'ko')).map(c=>
+  // 지역학이 2개 이상이면 이 자료에 선택된 지역학 소속 분류만 표시 (지역학마다 하위 분류가 따로 관리되므로)
+  let scopeNames = null;
+  if(localStudies.length>1){
+    scopeNames = localStudyFieldTags.slice();
+    if(!scopeNames.length){
+      box.innerHTML = `<span class="cat-chip-empty">위에서 지역학을 먼저 선택해 주세요</span>`;
+      return;
+    }
+  }
+  const visible = categories.filter(c=> !scopeNames || scopeNames.includes(c.localStudy));
+  if(!visible.length){
+    box.innerHTML = `<span class="cat-chip-empty">선택한 지역학에 등록된 분류가 없습니다 — '지역학 분류 관리'에서 먼저 추가해 주세요</span>`;
+    return;
+  }
+  box.innerHTML = visible.slice().sort((a,b)=>a.name.localeCompare(b.name,'ko')).map(c=>
     `<span class="cat-chip ${categoryTags.includes(c.name)?'on':''}" onclick="toggleCategoryTag('${c.name.replace(/'/g,"\\'")}')">${escapeHtml(c.name)}</span>`
   ).join('');
 }
@@ -2427,36 +2454,59 @@ async function deleteThesaurusTerm(id){
 /* ══════ 화도학 분류(카테고리) 관리 — '이석영', '음악', '화도읍 생활상'처럼
    사서가 직접 만드는 이 도서관만의 갈래. 자료 등록/수정, 목록 필터,
    플랫폼 '단' 제목 선택에서 공통으로 재사용된다. ══════ */
+let categoryManagerScope = ''; // 지역학 분류 관리 팝업에서 현재 선택된 지역학(하위 분류를 그 지역학 소속으로 관리)
 function categoryRecordCount(name){
   return records.filter(r=>(r.categories||[]).includes(name)).length;
 }
 function openCategoryManager(){
   document.getElementById('cat_new_name').value='';
+  if(!categoryManagerScope || !localStudies.some(ls=>ls.name===categoryManagerScope)){
+    categoryManagerScope = primaryLocalStudyName();
+  }
+  renderCategoryManagerStudyTabs();
   renderCategoryManagerList();
   document.getElementById('categoryModal').classList.add('on');
 }
 function closeCategoryManager(){ document.getElementById('categoryModal').classList.remove('on'); }
+function setCategoryManagerScope(name){
+  categoryManagerScope = name;
+  renderCategoryManagerStudyTabs();
+  renderCategoryManagerList();
+}
+function renderCategoryManagerStudyTabs(){
+  const box = document.getElementById('catMgrStudyTabs');
+  if(!box) return;
+  if(!localStudies.length){
+    box.innerHTML = `<span class="hint">먼저 '지역학 관리'에서 지역학을 추가해 주세요.</span>`;
+    return;
+  }
+  box.innerHTML = localStudies.slice().sort((a,b)=>a.name.localeCompare(b.name,'ko')).map(ls=>
+    `<span class="ls-filter-chip ${categoryManagerScope===ls.name?'on':''}" onclick="setCategoryManagerScope('${ls.name.replace(/'/g,"\\'")}')">${escapeHtml(ls.name)}</span>`
+  ).join('');
+}
 async function addCategoryManual(){
+  if(!categoryManagerScope){ showToast('먼저 지역학을 선택해 주세요'); return; }
   const name = document.getElementById('cat_new_name').value.trim();
   if(!name){ showToast('분류명을 입력해 주세요'); return; }
-  if(categories.some(c=>c.name===name)){ showToast('이미 있는 분류명입니다'); return; }
-  categories.push({ id:'cat_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), name, createdAt:new Date().toISOString() });
+  if(categories.some(c=>c.name===name && c.localStudy===categoryManagerScope)){ showToast('이미 있는 분류명입니다'); return; }
+  categories.push({ id:'cat_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), name, localStudy:categoryManagerScope, createdAt:new Date().toISOString() });
   categories.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
   await saveCategories();
   document.getElementById('cat_new_name').value='';
   renderCategoryManagerList();
   renderCategoryFilterBar();
-  showToast('화도학 분류에 추가되었습니다: ' + name);
+  if(document.getElementById('formModal').classList.contains('on')) renderCategoryFieldChips();
+  showToast(`'${categoryManagerScope}' 하위 분류에 추가되었습니다: ` + name);
 }
 function renderCategoryManagerList(){
-  const list = categories.slice().sort((a,b)=>a.name.localeCompare(b.name,'ko'));
-  document.getElementById('categoryManagerList').innerHTML = list.length ? list.map(c=>`
+  const scoped = categories.filter(c=>c.localStudy===categoryManagerScope).sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  document.getElementById('categoryManagerList').innerHTML = scoped.length ? scoped.map(c=>`
     <div class="cat-mgr-row">
       <input type="text" value="${escapeHtml(c.name)}" onchange="renameCategory('${c.id}', this.value)">
       <span class="cat-mgr-count">${categoryRecordCount(c.name)}건</span>
       <button type="button" class="btn sm" onclick="deleteCategory('${c.id}')">삭제</button>
-    </div>`).join('') : `<span class="hint">등록된 분류가 없습니다. 위에서 새 분류를 추가해 보세요.</span>`;
-  document.getElementById('categoryCountHint').textContent = `총 ${categories.length}개 분류`;
+    </div>`).join('') : `<span class="hint">'${escapeHtml(categoryManagerScope||'')}' 지역학에 등록된 분류가 없습니다. 위에서 새 분류를 추가해 보세요.</span>`;
+  document.getElementById('categoryCountHint').textContent = `'${categoryManagerScope||''}' ${scoped.length}개 분류 · 전체 ${categories.length}개`;
 }
 async function renameCategory(id, newNameRaw){
   const newName = (newNameRaw||'').trim();
@@ -2464,7 +2514,7 @@ async function renameCategory(id, newNameRaw){
   if(!cat) return;
   if(!newName){ renderCategoryManagerList(); return; }
   if(newName===cat.name) return;
-  if(categories.some(c=>c.id!==id && c.name===newName)){ showToast('이미 있는 분류명입니다'); renderCategoryManagerList(); return; }
+  if(categories.some(c=>c.id!==id && c.name===newName && c.localStudy===cat.localStudy)){ showToast('이미 있는 분류명입니다'); renderCategoryManagerList(); return; }
   const oldName = cat.name;
   cat.name = newName;
   records.forEach(r=>{
@@ -2475,6 +2525,7 @@ async function renameCategory(id, newNameRaw){
   await Promise.all([saveCategories(), saveRecords()]);
   renderCategoryManagerList();
   renderCategoryFilterBar();
+  if(document.getElementById('formModal').classList.contains('on')) renderCategoryFieldChips();
   showToast('분류명이 변경되었습니다: ' + oldName + ' → ' + newName);
 }
 async function deleteCategory(id){
@@ -2567,6 +2618,9 @@ function toggleLocalStudyFieldTag(name){
   const i = localStudyFieldTags.indexOf(name);
   if(i>=0) localStudyFieldTags.splice(i,1); else localStudyFieldTags.push(name);
   renderLocalStudyFieldChips();
+  // 지역학 선택이 바뀌면 그 소속 하위 분류 목록도 함께 갱신
+  categoryTags = categoryTags.filter(catName=>categories.some(c=>c.name===catName && localStudyFieldTags.includes(c.localStudy)));
+  renderCategoryFieldChips();
 }
 function renderLocalStudyFieldChips(){
   const label = document.getElementById('lsFieldLabel');
@@ -2592,10 +2646,11 @@ function renderLocalStudyFilterBar(){
   if(localStudies.length<2){ bar.innerHTML=''; return; }
   const list = currentList();
   const used = localStudies.filter(ls=>list.some(r=>(r.localStudies||[]).includes(ls.name)));
-  const chips = [`<span class="cat-filter-chip ${!activeLocalStudyFilter?'on':''}" onclick="setLocalStudyFilter(null)">전체보기 (${list.length})</span>`]
+  const chips = [`<span class="filter-row-label">지역학</span>`,
+    `<span class="ls-filter-chip ${!activeLocalStudyFilter?'on':''}" onclick="setLocalStudyFilter(null)">전체보기 (${list.length})</span>`]
     .concat(used.map(ls=>{
       const n = list.filter(r=>(r.localStudies||[]).includes(ls.name)).length;
-      return `<span class="cat-filter-chip ${activeLocalStudyFilter===ls.name?'on':''}" onclick="setLocalStudyFilter('${ls.name.replace(/'/g,"\\'")}')">${escapeHtml(ls.name)} (${n})</span>`;
+      return `<span class="ls-filter-chip ${activeLocalStudyFilter===ls.name?'on':''}" onclick="setLocalStudyFilter('${ls.name.replace(/'/g,"\\'")}')">${escapeHtml(ls.name)} (${n})</span>`;
     }));
   bar.innerHTML = chips.join('');
 }
