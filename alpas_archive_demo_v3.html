@@ -1741,6 +1741,7 @@ async function loadRecords(){
     categories.forEach(c=>{ if(!c.localStudy) c.localStudy = fallback; });
     await saveCategories();
   }
+  if(rebuildThesaurusScopeFromRecords()) await saveThesaurus();
 }
 async function saveRecords(){
   if(!sb) return;
@@ -2291,8 +2292,11 @@ async function submitForm(){
   }
   const pendingSubjectText = document.getElementById('f_subject_text').value;
   if(pendingSubjectText.trim()){ commitSubjectInput(pendingSubjectText); document.getElementById('f_subject_text').value=''; renderSubjectTags(); }
+  const recordLocalStudies = localStudies.length>1 ? localStudyFieldTags.slice() : (localStudies.length===1 ? [localStudies[0].name] : []);
   const coverageTerms = document.getElementById('f_coverage').value.split(',').map(s=>s.trim()).filter(Boolean);
-  await Promise.all(coverageTerms.map(t=>addThesaurusTerm(t)));
+  await Promise.all(coverageTerms.map(t=>addThesaurusTerm(t, recordLocalStudies)));
+  // 주제 태그는 지역학 구분 필드보다 먼저 입력될 수 있어, 저장 시점의 최종 소속 지역학으로 용어집 소속을 다시 맞춰준다
+  if(recordLocalStudies.length && syncThesaurusScopeForTerms(subjectTags, recordLocalStudies)){ await saveThesaurus(); }
   const base = {
     title, type,
     creator: document.getElementById('f_creator').value.trim(),
@@ -2303,7 +2307,7 @@ async function submitForm(){
     coverage: document.getElementById('f_coverage').value.trim(),
     subject: subjectTags.join(','),
     categories: categoryTags.slice(),
-    localStudies: localStudies.length>1 ? localStudyFieldTags.slice() : (localStudies.length===1 ? [localStudies[0].name] : []),
+    localStudies: recordLocalStudies,
     rights: document.querySelector('input[name=rights]:checked').value,
     source: document.getElementById('f_source').value.trim(),
     alpasList: pendingAlpasLinks.slice(),
@@ -2383,6 +2387,30 @@ async function addThesaurusTerm(term, scopeOverride){
     thesaurusTerms.push({ id:'th_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), term:t, chosung:getChosung(t), useCount:1, localStudies:scope, createdAt:new Date().toISOString() });
   }
   await saveThesaurus();
+}
+function syncThesaurusScopeForTerms(terms, scope){
+  if(!scope || !scope.length) return false;
+  let changed = false;
+  (terms||[]).forEach(term=>{
+    const t = thesaurusTerms.find(x=>x.term===term);
+    if(!t) return;
+    const merged = Array.from(new Set([...(t.localStudies||[]), ...scope]));
+    if(merged.length !== (t.localStudies||[]).length){ t.localStudies = merged; changed = true; }
+  });
+  return changed;
+}
+function rebuildThesaurusScopeFromRecords(){
+  let changed = false;
+  records.forEach(r=>{
+    const scope = r.localStudies || [];
+    if(!scope.length) return;
+    const terms = [
+      ...(r.subject||'').split(',').map(s=>s.trim()).filter(Boolean),
+      ...(r.coverage||'').split(',').map(s=>s.trim()).filter(Boolean),
+    ];
+    if(syncThesaurusScopeForTerms(terms, scope)) changed = true;
+  });
+  return changed;
 }
 let thesaurusManagerScope = ''; // 도서관 용어집 팝업에서 현재 보기 범위: ''=전체보기, 그 외=해당 지역학 용어만
 function setThesaurusManagerScope(name){
