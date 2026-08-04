@@ -233,6 +233,7 @@
   .ls-filter-chip.on{background:#4C8BF5;border-color:#4C8BF5;color:#fff;}
   .ls-filter-bar-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;padding:8px;background:#F3F8FF;border:1px solid #D9E6FC;border-radius:6px;}
   .ls-filter-bar-tabs .ls-filter-chip{background:#fff;}
+  .ls-filter-bar-tabs .ls-filter-chip.on{background:#4C8BF5;border-color:#4C8BF5;color:#fff;}
 
   /* 기존 자료 반입(LAS 연계) 마법사 */
   .las-steps{display:flex;gap:8px;margin-bottom:16px;}
@@ -525,7 +526,7 @@
   .ord-step.current .dot{background:var(--primary);border-color:var(--primary);box-shadow:0 0 0 3px var(--primary-tint);}
   .ord-step.current .lbl{color:var(--primary);font-weight:700;}
 
-  /* 화도학 용어집 */
+  /* 도서관 용어집 */
   .th-group{margin-bottom:12px;}
   .th-group-head{font-size:12px;font-weight:800;color:var(--primary);margin-bottom:6px;}
   .th-group-items{display:flex;flex-wrap:wrap;gap:6px;}
@@ -833,7 +834,7 @@
         <button class="btn" id="btnHandover" onclick="handoverSelected()" style="display:none;" disabled>등록인계</button>
         <button class="btn" onclick="exportExcel()">출력</button>
         <button class="btn" onclick="openCategoryManager()">지역학 분류 관리</button>
-        <button class="btn" id="btnThesaurus" onclick="openThesaurus()">화도학 용어집</button>
+        <button class="btn" id="btnThesaurus" onclick="openThesaurus()">도서관 용어집</button>
         <button class="btn" onclick="openBrandingDashboard()">지역 가치 발견</button>
         <button class="btn" onclick="openLasImport()">LAS 연계 기존 자료 반입</button>
         <span class="toolbar-hint" id="toolbarHint">선택 후 수정·삭제·검수 시작·등록인계를 사용할 수 있습니다</span>
@@ -909,12 +910,12 @@
           <label>지역 태그<span class="dc">Coverage</span></label>
           <div class="field" style="display:block;">
             <input type="text" id="f_coverage" placeholder="예: 남양주시 화도읍 (쉼표 구분)">
-            <div class="hint" style="margin-top:4px;"><span id="coverageThesaurusHint">저장 시 화도학 용어집에도 자동으로 함께 쌓입니다</span></div>
+            <div class="hint" style="margin-top:4px;"><span id="coverageThesaurusHint">저장 시 도서관 용어집에도 자동으로 함께 쌓입니다</span></div>
           </div>
           <label>주제 태그<span class="dc">Subject</span></label>
           <div class="field" style="position:relative;display:block;">
             <div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;">
-              <button type="button" class="btn sm" id="btnThesaurusShortcut" onclick="openThesaurus()">화도학 용어집 바로가기</button>
+              <button type="button" class="btn sm" id="btnThesaurusShortcut" onclick="openThesaurus()">도서관 용어집 바로가기</button>
               <button type="button" class="btn sm" onclick="openBrandingDashboard()">지역 가치 발견</button>
             </div>
             <div class="tag-input" id="subjectTagBox" onclick="document.getElementById('f_subject_text').focus()">
@@ -1358,15 +1359,17 @@
   </div>
 </div>
 
-<!-- 화도학 용어집(지역 특화 시소러스) -->
+<!-- 도서관 용어집(전관 공용 시소러스, 지역학별 보기 가능) -->
 <div class="modal-backdrop" id="thesaurusModal">
   <div class="modal" style="max-width:640px;max-height:90vh;">
     <div class="modal-head">
-      <span id="thesaurusModalTitle">화도학 용어집 (지역 특화 시소러스)</span>
+      <span id="thesaurusModalTitle">도서관 용어집</span>
       <button class="modal-x" onclick="closeThesaurus()">✕</button>
     </div>
     <div class="modal-body mb-pad">
-      <div class="hint" style="display:block;margin-bottom:10px;">사서가 주제어를 입력할 때마다 자동으로 쌓이는 용어 목록입니다. 여기서 직접 추가·수정·삭제할 수도 있고, 자료 등록 화면의 주제 태그 입력 시 초성 검색으로 바로 추천됩니다. 사용 횟수가 일정 기준 이상인 용어에는 배지가 붙어 플랫폼 미리보기의 <span id="brandKeywordPhrase">'화도학 브랜드 키워드'</span>에도 노출됩니다.</div>
+      <div class="hint" style="display:block;margin-bottom:10px;">이석영뉴미디어도서관의 자산으로 사서가 주제어를 입력할 때마다 자동으로 쌓이는 전관 공용 용어 목록입니다. 여기서 직접 추가·수정·삭제할 수도 있고, 자료 등록 화면의 주제 태그 입력 시 초성 검색으로 바로 추천됩니다. 사용 횟수가 일정 기준 이상인 용어에는 배지가 붙어 플랫폼 미리보기의 <span id="brandKeywordPhrase">'화도학 브랜드 키워드'</span>에도 노출됩니다.</div>
+      <div class="hint" style="display:block;margin-bottom:6px;">아래에서 전체보기(기본) 또는 생성된 지역학별로 나눠 볼 수 있습니다</div>
+      <div id="thStudyTabs" class="ls-filter-bar-tabs"></div>
       <div id="thTopKeywords" class="brand-section" style="margin-bottom:16px;"></div>
       <div class="brow"><label>새 용어 추가</label><input type="text" id="th_new_term" placeholder="용어를 입력하세요" oninput="renderThesaurusSimilar()"></div>
       <div id="thSimilar" class="ord-book-results" style="display:none;"></div>
@@ -1515,7 +1518,7 @@ let settings = { templateId:'grid', labels:{item:'아이템',collection:'컬렉�
 let collections = [];
 let customContent = [];
 let contentOrders = [];
-let thesaurusTerms = []; // 화도학 용어집(지역 특화 시소러스): {id, term, chosung, useCount, createdAt}
+let thesaurusTerms = []; // 도서관 용어집(전관 공용, 지역학별 보기 가능): {id, term, chosung, useCount, localStudies, createdAt}
 let donors = []; // 기증자 프로필: {id, name, phone, address, consentNote, thanksIssued, thanksIssuedDate, memo, createdAt, updatedAt}
 let builderPickedIds = new Set();
 let builderThumb = null;
@@ -1632,10 +1635,10 @@ function rowToContentOrder(row){
     status:row.status||'요청됨', createdAt:row.created_at };
 }
 function thesaurusToRow(t){
-  return { id:t.id, term:t.term, chosung:t.chosung||'', use_count:t.useCount||1, created_at:t.createdAt||new Date().toISOString() };
+  return { id:t.id, term:t.term, chosung:t.chosung||'', use_count:t.useCount||1, local_studies:t.localStudies||[], created_at:t.createdAt||new Date().toISOString() };
 }
 function rowToThesaurus(row){
-  return { id:row.id, term:row.term, chosung:row.chosung||'', useCount:row.use_count||1, createdAt:row.created_at };
+  return { id:row.id, term:row.term, chosung:row.chosung||'', useCount:row.use_count||1, localStudies:row.local_studies||[], createdAt:row.created_at };
 }
 function categoryToRow(c){
   return { id:c.id, name:c.name, local_study:c.localStudy||'', created_at:c.createdAt||new Date().toISOString() };
@@ -1709,7 +1712,7 @@ async function loadRecords(){
     const { data, error } = await sb.from('thesaurus_terms').select('*').order('term', {ascending:true});
     if(error) throw error;
     thesaurusTerms = (data||[]).map(rowToThesaurus);
-  }catch(e){ console.error('화도학 용어집 불러오기 실패', e); thesaurusTerms = []; }
+  }catch(e){ console.error('도서관 용어집 불러오기 실패', e); thesaurusTerms = []; }
 
   try{
     const { data, error } = await sb.from('donors').select('*').order('created_at', {ascending:false});
@@ -2002,10 +2005,6 @@ function primaryLocalStudyName(){ return (localStudies[0] && localStudies[0].nam
 function applyLocalStudyBranding(){
   const name = primaryLocalStudyName();
   const setText = (id, text) => { const el = document.getElementById(id); if(el) el.textContent = text; };
-  setText('btnThesaurus', name + ' 용어집');
-  setText('btnThesaurusShortcut', name + ' 용어집 바로가기');
-  setText('thesaurusModalTitle', name + ' 용어집 (지역 특화 시소러스)');
-  setText('coverageThesaurusHint', '저장 시 ' + name + ' 용어집에도 자동으로 함께 쌓입니다');
   setText('brandKeywordPhrase', "'" + name + " 브랜드 키워드'");
 }
 function toggleDcLabels(){
@@ -2369,22 +2368,45 @@ function allSubjectPool(){
   });
   return pool;
 }
-/* 화도학 용어집(지역 특화 시소러스): 사서가 주제어를 입력할 때마다 자동으로 쌓인다.
+/* 도서관 용어집(전관 공용): 사서가 주제어를 입력할 때마다 자동으로 쌓인다.
    이미 있는 용어면 사용 횟수만 올리고, 새 용어면 새로 등록한다. */
-async function addThesaurusTerm(term){
+async function addThesaurusTerm(term, scopeOverride){
   const t = term.trim();
   if(!t) return;
+  const scope = scopeOverride !== undefined ? scopeOverride
+    : (localStudyFieldTags.length ? localStudyFieldTags.slice() : (localStudies.length===1 ? [localStudies[0].name] : []));
   const existing = thesaurusTerms.find(x=>x.term===t);
-  if(existing){ existing.useCount = (existing.useCount||1) + 1; }
-  else { thesaurusTerms.push({ id:'th_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), term:t, chosung:getChosung(t), useCount:1, createdAt:new Date().toISOString() }); }
+  if(existing){
+    existing.useCount = (existing.useCount||1) + 1;
+    existing.localStudies = Array.from(new Set([...(existing.localStudies||[]), ...scope]));
+  } else {
+    thesaurusTerms.push({ id:'th_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), term:t, chosung:getChosung(t), useCount:1, localStudies:scope, createdAt:new Date().toISOString() });
+  }
   await saveThesaurus();
+}
+let thesaurusManagerScope = ''; // 도서관 용어집 팝업에서 현재 보기 범위: ''=전체보기, 그 외=해당 지역학 용어만
+function setThesaurusManagerScope(name){
+  thesaurusManagerScope = name;
+  renderThesaurusStudyTabs();
+  renderThesaurusList();
+}
+function renderThesaurusStudyTabs(){
+  const box = document.getElementById('thStudyTabs');
+  if(!box) return;
+  const tabs = [`<span class="ls-filter-chip ${!thesaurusManagerScope?'on':''}" onclick="setThesaurusManagerScope('')">전체보기</span>`]
+    .concat(localStudies.slice().sort((a,b)=>a.name.localeCompare(b.name,'ko')).map(ls=>
+      `<span class="ls-filter-chip ${thesaurusManagerScope===ls.name?'on':''}" onclick="setThesaurusManagerScope('${ls.name.replace(/'/g,"\\'")}')">${escapeHtml(ls.name)} 용어집</span>`
+    ));
+  box.innerHTML = tabs.join('');
 }
 function openThesaurus(){
   applyLocalStudyBranding();
+  thesaurusManagerScope = '';
   document.getElementById('th_new_term').value='';
   document.getElementById('th_search').value='';
   document.getElementById('thSimilar').style.display='none';
   document.getElementById('thSimilar').innerHTML='';
+  renderThesaurusStudyTabs();
   renderThesaurusList();
   document.getElementById('thesaurusModal').classList.add('on');
 }
@@ -2411,8 +2433,9 @@ function renderThesaurusSimilar(){
 async function addThesaurusTermManual(){
   const term = document.getElementById('th_new_term').value.trim();
   if(!term){ showToast('용어를 입력해 주세요'); return; }
-  await addThesaurusTerm(term);
-  showToast(primaryLocalStudyName() + ' 용어집에 등록되었습니다: ' + term);
+  const scope = thesaurusManagerScope ? [thesaurusManagerScope] : [];
+  await addThesaurusTerm(term, scope);
+  showToast('도서관 용어집에 등록되었습니다: ' + term + (thesaurusManagerScope ? ` (${thesaurusManagerScope})` : ''));
   document.getElementById('th_new_term').value='';
   document.getElementById('thSimilar').style.display='none';
   renderThesaurusList();
@@ -2420,7 +2443,7 @@ async function addThesaurusTermManual(){
 function renderThesaurusList(){
   const q = document.getElementById('th_search').value.trim().toLowerCase();
   const qCho = getChosung(q);
-  let list = thesaurusTerms.slice();
+  let list = thesaurusManagerScope ? thesaurusTerms.filter(t=>(t.localStudies||[]).includes(thesaurusManagerScope)) : thesaurusTerms.slice();
   if(q){ list = list.filter(t=>t.term.toLowerCase().includes(q) || t.chosung.includes(qCho)); }
   list.sort((a,b)=>a.term.localeCompare(b.term,'ko'));
   const groups = {};
@@ -2441,11 +2464,13 @@ function renderThesaurusList(){
           </span>`).join('')}
       </div>
     </div>`).join('') : `<span class="hint">등록된 용어가 없습니다</span>`;
-  document.getElementById('thCountHint').textContent = `총 ${thesaurusTerms.length}개 용어 · 가나다(초성)순 정렬 · 사용 ${BRAND_BADGE_THRESHOLD}회 이상 특화 키워드`;
+  document.getElementById('thCountHint').textContent = thesaurusManagerScope
+    ? `'${thesaurusManagerScope}' ${list.length}개 용어 · 전체 ${thesaurusTerms.length}개 · 가나다(초성)순 정렬`
+    : `전체 ${thesaurusTerms.length}개 용어 · 가나다(초성)순 정렬 · 사용 ${BRAND_BADGE_THRESHOLD}회 이상 특화 키워드`;
   renderThTopKeywords();
 }
 async function deleteThesaurusTerm(id){
-  if(!confirm('이 용어를 ' + primaryLocalStudyName() + ' 용어집에서 삭제할까요?')) return;
+  if(!confirm('이 용어를 도서관 용어집에서 삭제할까요?')) return;
   thesaurusTerms = thesaurusTerms.filter(t=>t.id!==id);
   await saveThesaurus();
   renderThesaurusList();
@@ -2828,8 +2853,10 @@ function renderKeywordRankingHtml(list){
 function renderThTopKeywords(){
   const el = document.getElementById('thTopKeywords');
   if(!el) return;
-  const top = topKeywords(5);
-  el.innerHTML = `<div class="brand-section-title">${primaryLocalStudyName()} 핵심 키워드 TOP 5</div>` + renderKeywordRankingHtml(top);
+  const scoped = thesaurusManagerScope ? thesaurusTerms.filter(t=>(t.localStudies||[]).includes(thesaurusManagerScope)) : thesaurusTerms;
+  const top = scoped.slice().sort((a,b)=>(b.useCount||0)-(a.useCount||0)).slice(0,5);
+  const label = thesaurusManagerScope ? `${thesaurusManagerScope} 핵심 키워드 TOP 5` : `도서관 핵심 키워드 TOP 5`;
+  el.innerHTML = `<div class="brand-section-title">${escapeHtml(label)}</div>` + renderKeywordRankingHtml(top);
 }
 
 /* ══════ 주제 허브: 용어 클릭 시 관련 자료 모아보기 ══════ */
