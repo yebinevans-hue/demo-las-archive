@@ -791,10 +791,9 @@
     <div class="page-sub" id="formSub">지역학 자료를 직접 입력하여 등록번호를 부여합니다.</div>
 
     <div class="local-name-bar">
-      <span class="lbl">지역학 이름</span>
-      <input type="text" id="localStudyNameInput" placeholder="예: 행복학">
-      <button type="button" class="btn sm primary" onclick="saveLocalStudyName()">저장</button>
-      <span class="hint" id="localNameHint" style="margin:0;"></span>
+      <span class="lbl">지역학 구분</span>
+      <span class="cat-chip-picker" id="localStudyChipsDisplay" style="flex:1;"></span>
+      <button type="button" class="btn sm" onclick="openLocalStudyManager()">지역학 관리</button>
     </div>
 
     <div class="panel">
@@ -831,6 +830,7 @@
         <span class="toolbar-hint">선택 후 수정·삭제·검수 시작·등록인계를 사용할 수 있습니다</span>
       </div>
 
+      <div class="cat-filter-bar" id="localStudyFilterBar"></div>
       <div class="cat-filter-bar" id="categoryFilterBar"></div>
 
       <table>
@@ -913,6 +913,11 @@
             </div>
             <div class="tag-suggest" id="subjectSuggest" style="display:none;"></div>
             <div class="hint" id="subjectHint" style="margin-top:4px;"></div>
+          </div>
+          <label id="lsFieldLabel" style="display:none;">지역학 구분<span class="dc">LocalStudy</span></label>
+          <div class="field" id="lsFieldWrap" style="display:none;">
+            <div class="cat-chip-picker" id="localStudyFieldChips"></div>
+            <div class="hint" style="margin-top:4px;">이 자료가 해당되는 지역학을 중복 선택할 수 있습니다(예: 화도학·별내학 모두 해당되는 자료).</div>
           </div>
           <label>화도학 분류<span class="dc">Category</span></label>
           <div class="field" style="display:block;">
@@ -1366,6 +1371,26 @@
   </div>
 </div>
 
+<!-- 지역학 관리 -->
+<div class="modal-backdrop" id="localStudyModal">
+  <div class="modal" style="max-width:520px;max-height:90vh;">
+    <div class="modal-head">
+      <span>지역학 관리</span>
+      <button class="modal-x" onclick="closeLocalStudyManager()">✕</button>
+    </div>
+    <div class="modal-body mb-pad">
+      <div class="hint" style="display:block;margin-bottom:10px;">이 도서관이 서비스하는 지역학 구분입니다(예: 화도학, 별내학). 하나만 두어도 되고, 여러 지역을 함께 서비스한다면 여러 개를 등록해 자료별로 구분 관리할 수 있습니다. 2개 이상 등록하면 자료 등록 화면에 선택 필드가 나타나고, 목록에서도 전체보기/지역학별로 걸러볼 수 있습니다.</div>
+      <div class="brow"><label>새 지역학 추가</label><input type="text" id="ls_new_name" placeholder="예: 화도학, 별내학" onkeydown="if(event.key==='Enter'){event.preventDefault();addLocalStudyManual();}"></div>
+      <div style="display:flex;justify-content:flex-end;margin-bottom:14px;"><button type="button" class="btn primary sm" onclick="addLocalStudyManual()">+ 지역학 추가</button></div>
+      <div id="localStudyManagerList"></div>
+    </div>
+    <div class="modal-foot">
+      <span class="hint" id="localStudyCountHint"></span>
+      <div><button type="button" class="btn primary" onclick="closeLocalStudyManager()">닫기</button></div>
+    </div>
+  </div>
+</div>
+
 <!-- 화도학 분류(카테고리) 관리 -->
 <div class="modal-backdrop" id="categoryModal">
   <div class="modal" style="max-width:520px;max-height:90vh;">
@@ -1447,6 +1472,9 @@ let pendingAlpasLinks = [];
 let subjectTags = [];
 let categories = []; // 화도학 분류(카테고리): {id, name, createdAt} — 사서가 직접 추가/수정/삭제로 관리
 let categoryTags = []; // 등록/수정 폼에서 현재 선택 중인 분류명 목록
+let localStudies = []; // 지역학 구분(복수 가능): {id, name, createdAt} — 사서가 직접 추가/수정/삭제로 관리
+let localStudyFieldTags = []; // 등록/수정 폼에서 현재 선택 중인 지역학 목록(자료 1건이 여러 지역학에 동시 해당 가능)
+let activeLocalStudyFilter = null; // 목록 화면에서 선택된 지역학 필터(null=전체보기)
 let activeCategoryFilter = null; // 목록 화면에서 선택된 분류 필터(null=전체)
 let currentAcq = '등록';
 /* 기존 자료 반입(LAS 연계): CSV 업로드 → 필드 매핑 → 미리보기 → 반입 3단계 마법사 상태 */
@@ -1546,7 +1574,7 @@ function recordToRow(r){
     creator:r.creator||'', contributor:r.contributor||'',
     prod_date:r.prodDate||null, collect_date:r.collectDate||null,
     description:r.desc||'', coverage:r.coverage||'', subject:r.subject||'',
-    categories:r.categories||[],
+    categories:r.categories||[], local_studies:r.localStudies||[],
     rights:r.rights, source:r.source||'', source_url:r.sourceUrl||'', alpas_list:r.alpasList||[],
     receipt_no:r.receiptNo||'',
     files:r.files||[], status:r.status, reg_no:r.regNo||'',
@@ -1559,7 +1587,7 @@ function rowToRecord(row){
     creator:row.creator, contributor:row.contributor,
     prodDate:row.prod_date, collectDate:row.collect_date,
     desc:row.description, coverage:row.coverage, subject:row.subject,
-    categories:row.categories||[],
+    categories:row.categories||[], localStudies:row.local_studies||[],
     rights:row.rights, source:row.source, sourceUrl:row.source_url, alpasList:row.alpas_list||[],
     receiptNo:row.receipt_no,
     files:row.files||[], status:row.status, regNo:row.reg_no,
@@ -1601,6 +1629,12 @@ function categoryToRow(c){
   return { id:c.id, name:c.name, created_at:c.createdAt||new Date().toISOString() };
 }
 function rowToCategory(row){
+  return { id:row.id, name:row.name, createdAt:row.created_at };
+}
+function localStudyToRow(ls){
+  return { id:ls.id, name:ls.name, created_at:ls.createdAt||new Date().toISOString() };
+}
+function rowToLocalStudy(row){
   return { id:row.id, name:row.name, createdAt:row.created_at };
 }
 function donorToRow(d){
@@ -1676,6 +1710,16 @@ async function loadRecords(){
     if(error) throw error;
     categories = (data||[]).map(rowToCategory);
   }catch(e){ console.error('화도학 분류 불러오기 실패', e); categories = []; }
+
+  try{
+    const { data, error } = await sb.from('local_studies').select('*').order('name', {ascending:true});
+    if(error) throw error;
+    localStudies = (data||[]).map(rowToLocalStudy);
+  }catch(e){ console.error('지역학 불러오기 실패', e); localStudies = []; }
+  if(!localStudies.length && settings.localStudyName){
+    localStudies = [{ id:'ls_'+Date.now(), name:settings.localStudyName, createdAt:new Date().toISOString() }];
+    await saveLocalStudies();
+  }
 }
 async function saveRecords(){
   if(!sb) return;
@@ -1729,6 +1773,13 @@ async function saveCategories(){
   try{
     await sb.from('local_categories').delete().neq('id','__none__');
     if(categories.length) await sb.from('local_categories').insert(categories.map(categoryToRow));
+  }catch(e){ console.error('저장 실패', e); }
+}
+async function saveLocalStudies(){
+  if(!sb) return;
+  try{
+    await sb.from('local_studies').delete().neq('id','__none__');
+    if(localStudies.length) await sb.from('local_studies').insert(localStudies.map(localStudyToRow));
   }catch(e){ console.error('저장 실패', e); }
 }
 
@@ -1885,17 +1936,13 @@ function openForm(acqType){
   renderLocalName();
 }
 function renderLocalName(){
-  document.getElementById('localStudyNameInput').value = settings.localStudyName || '행복학';
-  document.getElementById('localNameHint').textContent = `플랫폼에 표시되는 이 도서관만의 지역학 명칭입니다 (현재: ${settings.localStudyName || '행복학'})`;
+  const box = document.getElementById('localStudyChipsDisplay');
+  if(!box) return;
+  box.innerHTML = localStudies.length
+    ? localStudies.map(ls=>`<span class="cat-chip" style="cursor:default;">${escapeHtml(ls.name)}</span>`).join('')
+    : `<span class="cat-chip-empty">등록된 지역학 구분이 없습니다 — '지역학 관리'에서 추가해 주세요</span>`;
 }
-async function saveLocalStudyName(){
-  const v = document.getElementById('localStudyNameInput').value.trim();
-  if(!v){ showToast('지역학 이름을 입력해 주세요'); return; }
-  settings.localStudyName = v;
-  await saveSettings();
-  renderLocalName();
-  showToast('지역학 이름이 저장되었습니다: ' + v);
-}
+function primaryLocalStudyName(){ return (localStudies[0] && localStudies[0].name) || '지역학'; }
 function toggleDetailSearch(){
   const d = document.getElementById('detailSearch');
   d.style.display = d.style.display==='none' ? 'flex' : 'none';
@@ -1906,6 +1953,7 @@ function resetSearch(){
   document.getElementById('q_type').value='';
   document.getElementById('q_rights').value='';
   activeCategoryFilter = null;
+  activeLocalStudyFilter = null;
   renderGrid();
 }
 function currentList(){ return records.filter(r=>r.acquisition===currentAcq); }
@@ -1920,6 +1968,7 @@ function filteredList(){
     if(rights && r.rights!==rights) return false;
     if(kw && !r.title.toLowerCase().includes(kw)) return false;
     if(activeCategoryFilter && !(r.categories||[]).includes(activeCategoryFilter)) return false;
+    if(activeLocalStudyFilter && !(r.localStudies||[]).includes(activeLocalStudyFilter)) return false;
     return true;
   });
 }
@@ -1949,6 +1998,7 @@ function fileExt(f){
 function renderGrid(){
   const all = currentList();
   const list = filteredList();
+  renderLocalStudyFilterBar();
   renderCategoryFilterBar();
   document.getElementById('gridCount').textContent = `전체 ${all.length}건 · 조회 ${list.length}건`;
   document.getElementById('gridEmpty').style.display = list.length ? 'none':'block';
@@ -2072,6 +2122,8 @@ function openModal(mode){
     renderSubjectTags();
     categoryTags = r.categories ? r.categories.slice() : [];
     renderCategoryFieldChips();
+    localStudyFieldTags = r.localStudies ? r.localStudies.slice() : [];
+    renderLocalStudyFieldChips();
     document.querySelector(`input[name=rights][value="${r.rights}"]`).checked = true;
     document.getElementById('f_source').value = r.source||'';
     pendingAlpasLinks = r.alpasList ? r.alpasList.slice() : (r.alpas ? [{title:r.alpas, call:''}] : []);
@@ -2106,6 +2158,7 @@ function clearModalFields(){
   subjectTags = []; document.getElementById('f_subject_text').value=''; renderSubjectTags();
   hideSubjectSuggest();
   categoryTags = []; renderCategoryFieldChips();
+  localStudyFieldTags = []; renderLocalStudyFieldChips();
 }
 function toggleCategoryTag(name){
   const i = categoryTags.indexOf(name);
@@ -2162,6 +2215,7 @@ async function submitForm(){
     coverage: document.getElementById('f_coverage').value.trim(),
     subject: subjectTags.join(','),
     categories: categoryTags.slice(),
+    localStudies: localStudies.length>1 ? localStudyFieldTags.slice() : (localStudies.length===1 ? [localStudies[0].name] : []),
     rights: document.querySelector('input[name=rights]:checked').value,
     source: document.getElementById('f_source').value.trim(),
     alpasList: pendingAlpasLinks.slice(),
@@ -2371,6 +2425,116 @@ async function deleteCategory(id){
   renderCategoryManagerList();
   renderCategoryFilterBar();
   if(document.getElementById('formModal').classList.contains('on')) renderCategoryFieldChips();
+}
+
+/* ══════ 지역학 관리 — 이 도서관이 서비스하는 지역학 구분(복수 가능).
+   지역학이 2개 이상이면 자료 등록 화면에 선택 필드가 나타나고, 목록에서도
+   전체보기/지역학별로 걸러볼 수 있다. ══════ */
+function localStudyRecordCount(name){
+  return records.filter(r=>(r.localStudies||[]).includes(name)).length;
+}
+function openLocalStudyManager(){
+  document.getElementById('ls_new_name').value='';
+  renderLocalStudyManagerList();
+  document.getElementById('localStudyModal').classList.add('on');
+}
+function closeLocalStudyManager(){ document.getElementById('localStudyModal').classList.remove('on'); }
+async function addLocalStudyManual(){
+  const name = document.getElementById('ls_new_name').value.trim();
+  if(!name){ showToast('지역학 이름을 입력해 주세요'); return; }
+  if(localStudies.some(ls=>ls.name===name)){ showToast('이미 있는 지역학 이름입니다'); return; }
+  localStudies.push({ id:'ls_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), name, createdAt:new Date().toISOString() });
+  localStudies.sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  settings.localStudyName = primaryLocalStudyName();
+  await Promise.all([saveLocalStudies(), saveSettings()]);
+  document.getElementById('ls_new_name').value='';
+  renderLocalStudyManagerList();
+  renderLocalName();
+  renderLocalStudyFieldChips();
+  renderLocalStudyFilterBar();
+  showToast('지역학이 추가되었습니다: ' + name);
+}
+function renderLocalStudyManagerList(){
+  const list = localStudies.slice().sort((a,b)=>a.name.localeCompare(b.name,'ko'));
+  document.getElementById('localStudyManagerList').innerHTML = list.length ? list.map(ls=>`
+    <div class="cat-mgr-row">
+      <input type="text" value="${escapeHtml(ls.name)}" onchange="renameLocalStudy('${ls.id}', this.value)">
+      <span class="cat-mgr-count">${localStudyRecordCount(ls.name)}건</span>
+      <button type="button" class="btn sm" onclick="deleteLocalStudy('${ls.id}')">삭제</button>
+    </div>`).join('') : `<span class="hint">등록된 지역학이 없습니다. 위에서 새 지역학을 추가해 보세요.</span>`;
+  document.getElementById('localStudyCountHint').textContent = `총 ${localStudies.length}개 지역학`;
+}
+async function renameLocalStudy(id, newNameRaw){
+  const newName = (newNameRaw||'').trim();
+  const ls = localStudies.find(x=>x.id===id);
+  if(!ls) return;
+  if(!newName){ renderLocalStudyManagerList(); return; }
+  if(newName===ls.name) return;
+  if(localStudies.some(x=>x.id!==id && x.name===newName)){ showToast('이미 있는 지역학 이름입니다'); renderLocalStudyManagerList(); return; }
+  const oldName = ls.name;
+  ls.name = newName;
+  records.forEach(r=>{
+    if(r.localStudies && r.localStudies.includes(oldName)){
+      r.localStudies = r.localStudies.map(n=>n===oldName ? newName : n);
+    }
+  });
+  settings.localStudyName = primaryLocalStudyName();
+  await Promise.all([saveLocalStudies(), saveRecords(), saveSettings()]);
+  renderLocalStudyManagerList();
+  renderLocalName();
+  renderLocalStudyFieldChips();
+  renderLocalStudyFilterBar();
+  showToast('지역학 이름이 변경되었습니다: ' + oldName + ' → ' + newName);
+}
+async function deleteLocalStudy(id){
+  const ls = localStudies.find(x=>x.id===id);
+  if(!ls) return;
+  const n = localStudyRecordCount(ls.name);
+  if(!confirm(n>0 ? `'${ls.name}' 지역학을 삭제할까요? 이미 등록된 자료 ${n}건의 지역학 구분도 함께 비워집니다.` : `'${ls.name}' 지역학을 삭제할까요?`)) return;
+  localStudies = localStudies.filter(x=>x.id!==id);
+  records.forEach(r=>{ if(r.localStudies) r.localStudies = r.localStudies.filter(name=>name!==ls.name); });
+  settings.localStudyName = primaryLocalStudyName();
+  await Promise.all([saveLocalStudies(), saveRecords(), saveSettings()]);
+  renderLocalStudyManagerList();
+  renderLocalName();
+  renderLocalStudyFieldChips();
+  renderLocalStudyFilterBar();
+}
+function toggleLocalStudyFieldTag(name){
+  const i = localStudyFieldTags.indexOf(name);
+  if(i>=0) localStudyFieldTags.splice(i,1); else localStudyFieldTags.push(name);
+  renderLocalStudyFieldChips();
+}
+function renderLocalStudyFieldChips(){
+  const label = document.getElementById('lsFieldLabel');
+  const wrap = document.getElementById('lsFieldWrap');
+  const box = document.getElementById('localStudyFieldChips');
+  if(!label || !wrap || !box) return;
+  if(localStudies.length>1){
+    label.style.display=''; wrap.style.display='';
+    box.innerHTML = localStudies.slice().sort((a,b)=>a.name.localeCompare(b.name,'ko')).map(ls=>
+      `<span class="cat-chip ${localStudyFieldTags.includes(ls.name)?'on':''}" onclick="toggleLocalStudyFieldTag('${ls.name.replace(/'/g,"\\'")}')">${escapeHtml(ls.name)}</span>`
+    ).join('');
+  } else {
+    label.style.display='none'; wrap.style.display='none';
+  }
+}
+function setLocalStudyFilter(name){
+  activeLocalStudyFilter = (activeLocalStudyFilter===name) ? null : name;
+  renderGrid();
+}
+function renderLocalStudyFilterBar(){
+  const bar = document.getElementById('localStudyFilterBar');
+  if(!bar) return;
+  if(localStudies.length<2){ bar.innerHTML=''; return; }
+  const list = currentList();
+  const used = localStudies.filter(ls=>list.some(r=>(r.localStudies||[]).includes(ls.name)));
+  const chips = [`<span class="cat-filter-chip ${!activeLocalStudyFilter?'on':''}" onclick="setLocalStudyFilter(null)">전체보기 (${list.length})</span>`]
+    .concat(used.map(ls=>{
+      const n = list.filter(r=>(r.localStudies||[]).includes(ls.name)).length;
+      return `<span class="cat-filter-chip ${activeLocalStudyFilter===ls.name?'on':''}" onclick="setLocalStudyFilter('${ls.name.replace(/'/g,"\\'")}')">${escapeHtml(ls.name)} (${n})</span>`;
+    }));
+  bar.innerHTML = chips.join('');
 }
 
 /* ══════ 기존 자료 반입(LAS 연계): LAS에서 내보낸 CSV를 이 시스템 DC 필드에 매핑해 반입 ══════
