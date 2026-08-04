@@ -1635,10 +1635,10 @@ function rowToContentOrder(row){
     status:row.status||'요청됨', createdAt:row.created_at };
 }
 function thesaurusToRow(t){
-  return { id:t.id, term:t.term, chosung:t.chosung||'', use_count:t.useCount||1, local_studies:t.localStudies||[], created_at:t.createdAt||new Date().toISOString() };
+  return { id:t.id, term:t.term, chosung:t.chosung||'', use_count:t.useCount||1, local_studies:t.localStudies||[], study_counts:t.studyCounts||{}, created_at:t.createdAt||new Date().toISOString() };
 }
 function rowToThesaurus(row){
-  return { id:row.id, term:row.term, chosung:row.chosung||'', useCount:row.use_count||1, localStudies:row.local_studies||[], createdAt:row.created_at };
+  return { id:row.id, term:row.term, chosung:row.chosung||'', useCount:row.use_count||1, localStudies:row.local_studies||[], studyCounts:row.study_counts||{}, createdAt:row.created_at };
 }
 function categoryToRow(c){
   return { id:c.id, name:c.name, local_study:c.localStudy||'', created_at:c.createdAt||new Date().toISOString() };
@@ -1741,7 +1741,7 @@ async function loadRecords(){
     categories.forEach(c=>{ if(!c.localStudy) c.localStudy = fallback; });
     await saveCategories();
   }
-  if(rebuildThesaurusScopeFromRecords()) await saveThesaurus();
+  if(rebuildThesaurusFromRecords()) await saveThesaurus();
 }
 async function saveRecords(){
   if(!sb) return;
@@ -2130,6 +2130,7 @@ async function deleteSelected(){
   records = records.filter(r=>!selectedIds.has(r.id));
   selectedIds.clear();
   await saveRecords();
+  if(rebuildThesaurusFromRecords()) await saveThesaurus();
   renderGrid();
   showToast('삭제되었습니다');
 }
@@ -2294,9 +2295,10 @@ async function submitForm(){
   if(pendingSubjectText.trim()){ commitSubjectInput(pendingSubjectText); document.getElementById('f_subject_text').value=''; renderSubjectTags(); }
   const recordLocalStudies = localStudies.length>1 ? localStudyFieldTags.slice() : (localStudies.length===1 ? [localStudies[0].name] : []);
   const coverageTerms = document.getElementById('f_coverage').value.split(',').map(s=>s.trim()).filter(Boolean);
-  await Promise.all(coverageTerms.map(t=>addThesaurusTerm(t, recordLocalStudies)));
-  // 주제 태그는 지역학 구분 필드보다 먼저 입력될 수 있어, 저장 시점의 최종 소속 지역학으로 용어집 소속을 다시 맞춰준다
-  if(recordLocalStudies.length && syncThesaurusScopeForTerms(subjectTags, recordLocalStudies)){ await saveThesaurus(); }
+  // 새 용어는 여기서 미리 등록해 자동완성 풀에 즉시 반영하고, 정확한 전체·지역학별 사용횟수는
+  // 자료 저장 직후 rebuildThesaurusFromRecords()로 처음부터 다시 집계해 확정한다(중복 집계 방지).
+  coverageTerms.forEach(t=>{ if(!thesaurusTerms.find(x=>x.term===t)) thesaurusTerms.push({ id:'th_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), term:t, chosung:getChosung(t), useCount:0, studyCounts:{}, localStudies:[], createdAt:new Date().toISOString() }); });
+  subjectTags.forEach(t=>{ if(!thesaurusTerms.find(x=>x.term===t)) thesaurusTerms.push({ id:'th_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), term:t, chosung:getChosung(t), useCount:0, studyCounts:{}, localStudies:[], createdAt:new Date().toISOString() }); });
   const base = {
     title, type,
     creator: document.getElementById('f_creator').value.trim(),
@@ -2332,6 +2334,8 @@ async function submitForm(){
     await saveRecords(); await saveSettings();
     showToast((currentAcq==='기증'?'기증 자료가':'자료가') + ' 등록되었습니다: ' + title);
   }
+  // 방금 저장한 자료까지 포함해 전체·지역학별 용어 사용횟수를 처음부터 다시 정확히 집계
+  if(rebuildThesaurusFromRecords()) await saveThesaurus();
   selectedIds.clear();
   closeModal();
   renderGrid();
@@ -2379,36 +2383,53 @@ async function addThesaurusTerm(term, scopeOverride){
   if(!t) return;
   const scope = scopeOverride !== undefined ? scopeOverride
     : (localStudyFieldTags.length ? localStudyFieldTags.slice() : (localStudies.length===1 ? [localStudies[0].name] : []));
-  const existing = thesaurusTerms.find(x=>x.term===t);
-  if(existing){
-    existing.useCount = (existing.useCount||1) + 1;
-    existing.localStudies = Array.from(new Set([...(existing.localStudies||[]), ...scope]));
-  } else {
-    thesaurusTerms.push({ id:'th_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), term:t, chosung:getChosung(t), useCount:1, localStudies:scope, createdAt:new Date().toISOString() });
+  let existing = thesaurusTerms.find(x=>x.term===t);
+  if(!existing){
+    existing = { id:'th_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), term:t, chosung:getChosung(t), useCount:0, studyCounts:{}, localStudies:[], createdAt:new Date().toISOString() };
+    thesaurusTerms.push(existing);
   }
+  existing.useCount = (existing.useCount||0) + 1;
+  existing.studyCounts = existing.studyCounts || {};
+  scope.forEach(name=>{ existing.studyCounts[name] = (existing.studyCounts[name]||0) + 1; });
+  existing.localStudies = Object.keys(existing.studyCounts);
   await saveThesaurus();
 }
-function syncThesaurusScopeForTerms(terms, scope){
-  if(!scope || !scope.length) return false;
-  let changed = false;
-  (terms||[]).forEach(term=>{
-    const t = thesaurusTerms.find(x=>x.term===term);
-    if(!t) return;
-    const merged = Array.from(new Set([...(t.localStudies||[]), ...scope]));
-    if(merged.length !== (t.localStudies||[]).length){ t.localStudies = merged; changed = true; }
-  });
-  return changed;
+function thesaurusTermCount(t, scope){
+  if(!scope) return t.useCount||0;
+  return (t.studyCounts && t.studyCounts[scope]) || 0;
 }
-function rebuildThesaurusScopeFromRecords(){
-  let changed = false;
+/* 실제 자료(records)에 붙은 주제·지역 태그를 기준으로 용어별 전체 사용횟수·지역학별 사용횟수를
+   다시 정확히 집계한다(중복 저장 방지를 위해 매번 처음부터 다시 계산). 자료에 아직 쓰이지 않고
+   용어집 팝업에서 수동으로만 추가된 용어는 건드리지 않는다. */
+function rebuildThesaurusFromRecords(){
+  const counts = {}; // term -> { global, byStudy:{name:n} }
   records.forEach(r=>{
     const scope = r.localStudies || [];
-    if(!scope.length) return;
-    const terms = [
+    const terms = new Set([
       ...(r.subject||'').split(',').map(s=>s.trim()).filter(Boolean),
       ...(r.coverage||'').split(',').map(s=>s.trim()).filter(Boolean),
-    ];
-    if(syncThesaurusScopeForTerms(terms, scope)) changed = true;
+    ]);
+    terms.forEach(term=>{
+      if(!term) return;
+      if(!counts[term]) counts[term] = { global:0, byStudy:{} };
+      counts[term].global += 1;
+      scope.forEach(name=>{ counts[term].byStudy[name] = (counts[term].byStudy[name]||0) + 1; });
+    });
+  });
+  let changed = false;
+  Object.keys(counts).forEach(term=>{
+    let t = thesaurusTerms.find(x=>x.term===term);
+    const c = counts[term];
+    if(!t){
+      t = { id:'th_'+Date.now()+'_'+Math.random().toString(36).slice(2,7), term, chosung:getChosung(term), useCount:0, studyCounts:{}, localStudies:[], createdAt:new Date().toISOString() };
+      thesaurusTerms.push(t);
+      changed = true;
+    }
+    if(t.useCount !== c.global){ t.useCount = c.global; changed = true; }
+    const newKeys = Object.keys(c.byStudy).sort();
+    const oldKeys = Object.keys(t.studyCounts||{}).sort();
+    const same = JSON.stringify(newKeys)===JSON.stringify(oldKeys) && newKeys.every(k=>t.studyCounts[k]===c.byStudy[k]);
+    if(!same){ t.studyCounts = c.byStudy; t.localStudies = newKeys; changed = true; }
   });
   return changed;
 }
@@ -2484,12 +2505,12 @@ function renderThesaurusList(){
     <div class="th-group">
       <div class="th-group-head">${escapeHtml(g)}</div>
       <div class="th-group-items">
-        ${groups[g].map(t=>`
+        ${groups[g].map(t=>{ const cnt = thesaurusTermCount(t, thesaurusManagerScope); return `
           <span class="ord-book-chip" style="background:var(--amber-tint);color:var(--amber);">
             <button type="button" class="th-term-btn" onclick="openTopicHub('${escapeHtml(t.term).replace(/'/g,"\\'")}')">${escapeHtml(t.term)}</button>
-            <span style="opacity:.7;">(${t.useCount})</span>${t.useCount>=BRAND_BADGE_THRESHOLD ? ('<span class="th-badge" title="'+primaryLocalStudyName()+' 특화 키워드">특화</span>') : ''}
+            <span style="opacity:.7;">(${cnt})</span>${cnt>=BRAND_BADGE_THRESHOLD ? ('<span class="th-badge" title="'+(thesaurusManagerScope||primaryLocalStudyName())+' 특화 키워드">특화</span>') : ''}
             <span class="x" onclick="deleteThesaurusTerm('${t.id}')">✕</span>
-          </span>`).join('')}
+          </span>`; }).join('')}
       </div>
     </div>`).join('') : `<span class="hint">등록된 용어가 없습니다</span>`;
   document.getElementById('thCountHint').textContent = thesaurusManagerScope
@@ -2801,6 +2822,7 @@ async function runLasImport(){
   const mapped = lasImportRows.map(mapLasRow);
   records = mapped.concat(records);
   await saveRecords();
+  if(rebuildThesaurusFromRecords()) await saveThesaurus();
   document.getElementById('lasImportHint').textContent = `${mapped.length}건이 '기증' 목록의 접수중 상태로 반입되었습니다`;
   showToast(`LAS에서 ${mapped.length}건을 반입했습니다 — 기증 목록에서 화도학 분류·주제 태그를 채운 뒤 등록완료로 진행해 주세요`);
   closeLasImport();
@@ -2867,24 +2889,25 @@ const BRAND_BADGE_THRESHOLD = 3;
 function topKeywords(n){
   return thesaurusTerms.slice().sort((a,b)=>(b.useCount||0)-(a.useCount||0)).slice(0, n||10);
 }
-function renderKeywordRankingHtml(list){
+function renderKeywordRankingHtml(list, scope){
   if(!list.length) return `<span class="hint">아직 축적된 용어가 없습니다</span>`;
-  const max = Math.max(...list.map(t=>t.useCount||0), 1);
+  const cnt = t => thesaurusTermCount(t, scope);
+  const max = Math.max(...list.map(cnt), 1);
   return list.map((t,i)=>`
     <div class="brand-rank-row">
       <div class="brand-rank-no">${i+1}</div>
-      <button type="button" class="th-term-btn brand-rank-name" onclick="openTopicHub('${escapeHtml(t.term).replace(/'/g,"\\'")}')">${escapeHtml(t.term)}${t.useCount>=BRAND_BADGE_THRESHOLD ? (' <span class="th-badge" title="'+primaryLocalStudyName()+' 특화 키워드">특화</span>') : ''}</button>
-      <div class="brand-rank-bar-wrap"><div class="brand-rank-bar" style="width:${Math.round((t.useCount||0)/max*100)}%;"></div></div>
-      <div class="brand-rank-count">${t.useCount||0}회</div>
+      <button type="button" class="th-term-btn brand-rank-name" onclick="openTopicHub('${escapeHtml(t.term).replace(/'/g,"\\'")}')">${escapeHtml(t.term)}${cnt(t)>=BRAND_BADGE_THRESHOLD ? (' <span class="th-badge" title="'+(scope||primaryLocalStudyName())+' 특화 키워드">특화</span>') : ''}</button>
+      <div class="brand-rank-bar-wrap"><div class="brand-rank-bar" style="width:${Math.round(cnt(t)/max*100)}%;"></div></div>
+      <div class="brand-rank-count">${cnt(t)}회</div>
     </div>`).join('');
 }
 function renderThTopKeywords(){
   const el = document.getElementById('thTopKeywords');
   if(!el) return;
   const scoped = thesaurusManagerScope ? thesaurusTerms.filter(t=>(t.localStudies||[]).includes(thesaurusManagerScope)) : thesaurusTerms;
-  const top = scoped.slice().sort((a,b)=>(b.useCount||0)-(a.useCount||0)).slice(0,5);
+  const top = scoped.slice().sort((a,b)=>thesaurusTermCount(b,thesaurusManagerScope)-thesaurusTermCount(a,thesaurusManagerScope)).slice(0,5);
   const label = thesaurusManagerScope ? `${thesaurusManagerScope} 핵심 키워드 TOP 5` : `도서관 핵심 키워드 TOP 5`;
-  el.innerHTML = `<div class="brand-section-title">${escapeHtml(label)}</div>` + renderKeywordRankingHtml(top);
+  el.innerHTML = `<div class="brand-section-title">${escapeHtml(label)}</div>` + renderKeywordRankingHtml(top, thesaurusManagerScope);
 }
 
 /* ══════ 주제 허브: 용어 클릭 시 관련 자료 모아보기 ══════ */
